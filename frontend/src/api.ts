@@ -29,21 +29,23 @@ export const api = {
   },
 
   getTransactions: async (token: string) => {
-    const response = await fetch(`${API_BASE_URL}/transactions`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    return response.json();
+    // Mock transaction retrieval
+    const transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+    return { success: true, transactions };
   },
 
   addTransaction: async (token: string, transaction: any) => {
-    const response = await fetch(`${API_BASE_URL}/transactions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(transaction),
-    });
-    return response.json();
+    // Mock transaction storage
+    const existingTransactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+    const newTransaction = {
+      ...transaction,
+      id: Date.now(),
+      date: new Date().toISOString(),
+      userId: JSON.parse(localStorage.getItem('user') || '{}').id
+    };
+    existingTransactions.push(newTransaction);
+    localStorage.setItem('transactions', JSON.stringify(existingTransactions));
+    
+    return { success: true, transaction: newTransaction };
   },
 };
