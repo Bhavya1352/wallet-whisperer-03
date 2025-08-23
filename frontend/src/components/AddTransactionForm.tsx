@@ -4,7 +4,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { api } from '@/api';
 
 interface AddTransactionFormProps {
   isOpen: boolean;
@@ -18,43 +17,34 @@ const AddTransactionForm = ({ isOpen, onClose, type }: AddTransactionFormProps) 
     description: '',
     category: '',
   });
-  const [loading, setLoading] = useState(false);
 
   const categories = type === 'expense' 
     ? ['Food', 'Transport', 'Housing', 'Entertainment', 'Healthcare', 'Shopping', 'Other']
     : ['Salary', 'Freelance', 'Investment', 'Business', 'Other'];
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
 
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        alert('Please login first');
-        return;
-      }
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const transaction = {
+      ...formData,
+      amount: parseFloat(formData.amount),
+      type,
+      id: Date.now(),
+      date: new Date().toISOString(),
+      userId: user.id,
+      userName: user.name,
+      userEmail: user.email
+    };
 
-      const response = await api.addTransaction(token, {
-        ...formData,
-        amount: parseFloat(formData.amount),
-        type,
-        date: new Date().toISOString(),
-      });
+    // Store transaction
+    const transactions = JSON.parse(localStorage.getItem('allTransactions') || '[]');
+    transactions.push(transaction);
+    localStorage.setItem('allTransactions', JSON.stringify(transactions));
 
-      if (response.success) {
-        alert('Transaction added successfully!');
-        setFormData({ amount: '', description: '', category: '' });
-        onClose();
-      } else {
-        alert(response.message || 'Error adding transaction');
-      }
-    } catch (error) {
-      console.error('Error adding transaction:', error);
-      alert('Error adding transaction');
-    } finally {
-      setLoading(false);
-    }
+    alert(`${type === 'income' ? 'Income' : 'Expense'} added successfully!`);
+    setFormData({ amount: '', description: '', category: '' });
+    onClose();
   };
 
   return (
@@ -106,8 +96,8 @@ const AddTransactionForm = ({ isOpen, onClose, type }: AddTransactionFormProps) 
           </div>
 
           <div className="flex gap-2">
-            <Button type="submit" disabled={loading} className="flex-1">
-              {loading ? 'Adding...' : `Add ${type === 'income' ? 'Income' : 'Expense'}`}
+            <Button type="submit" className="flex-1">
+              Add {type === 'income' ? 'Income' : 'Expense'}
             </Button>
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel

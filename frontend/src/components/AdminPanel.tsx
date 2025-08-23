@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface AdminPanelProps {
   isOpen: boolean;
@@ -10,126 +11,93 @@ interface AdminPanelProps {
 const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
   const [users, setUsers] = useState([]);
   const [transactions, setTransactions] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('users');
-
-  const fetchUsers = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch('http://localhost:5000/api/admin/users');
-      const data = await response.json();
-      if (data.success) {
-        setUsers(data.users);
-      }
-    } catch (error) {
-      console.error('Error fetching users:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchTransactions = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch('http://localhost:5000/api/admin/transactions');
-      const data = await response.json();
-      if (data.success) {
-        setTransactions(data.transactions);
-      }
-    } catch (error) {
-      console.error('Error fetching transactions:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   useEffect(() => {
     if (isOpen) {
-      if (activeTab === 'users') {
-        fetchUsers();
-      } else {
-        fetchTransactions();
-      }
+      const allUsers = JSON.parse(localStorage.getItem('allUsers') || '[]');
+      const allTransactions = JSON.parse(localStorage.getItem('allTransactions') || '[]');
+      setUsers(allUsers);
+      setTransactions(allTransactions);
     }
-  }, [isOpen, activeTab]);
+  }, [isOpen]);
+
+  const clearAllData = () => {
+    if (confirm('Are you sure you want to clear all data?')) {
+      localStorage.removeItem('allUsers');
+      localStorage.removeItem('allTransactions');
+      setUsers([]);
+      setTransactions([]);
+      alert('All data cleared!');
+    }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Admin Panel - Database Entries</DialogTitle>
+          <DialogTitle>Admin Panel - View All Data</DialogTitle>
         </DialogHeader>
         
-        <div className="space-y-4">
-          {/* Tabs */}
-          <div className="flex gap-2">
-            <Button 
-              variant={activeTab === 'users' ? 'default' : 'outline'}
-              onClick={() => setActiveTab('users')}
-            >
-              Users ({users.length})
-            </Button>
-            <Button 
-              variant={activeTab === 'transactions' ? 'default' : 'outline'}
-              onClick={() => setActiveTab('transactions')}
-            >
-              Transactions ({transactions.length})
-            </Button>
-          </div>
-
-          {loading && <p>Loading...</p>}
-
-          {/* Users Tab */}
-          {activeTab === 'users' && (
-            <div className="space-y-2">
-              <h3 className="font-semibold">Registered Users:</h3>
-              {users.length === 0 ? (
-                <p className="text-muted-foreground">No users found</p>
-              ) : (
-                <div className="grid gap-2">
-                  {users.map((user: any) => (
-                    <div key={user._id} className="p-3 border rounded-lg">
-                      <p><strong>Name:</strong> {user.name}</p>
-                      <p><strong>Email:</strong> {user.email}</p>
-                      <p><strong>Joined:</strong> {new Date(user.createdAt).toLocaleDateString()}</p>
-                      <p><strong>ID:</strong> {user._id}</p>
-                    </div>
-                  ))}
-                </div>
-              )}
+        <Tabs defaultValue="users" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="users">Users ({users.length})</TabsTrigger>
+            <TabsTrigger value="transactions">Transactions ({transactions.length})</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="users" className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-semibold">All Registered Users</h3>
+              <Button variant="destructive" size="sm" onClick={clearAllData}>
+                Clear All Data
+              </Button>
             </div>
-          )}
-
-          {/* Transactions Tab */}
-          {activeTab === 'transactions' && (
-            <div className="space-y-2">
-              <h3 className="font-semibold">All Transactions:</h3>
-              {transactions.length === 0 ? (
-                <p className="text-muted-foreground">No transactions found</p>
-              ) : (
-                <div className="grid gap-2">
-                  {transactions.map((transaction: any) => (
-                    <div key={transaction._id} className="p-3 border rounded-lg">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <p><strong>User:</strong> {transaction.userId?.name || 'Unknown'} ({transaction.userId?.email})</p>
-                          <p><strong>Type:</strong> <span className={transaction.type === 'income' ? 'text-green-600' : 'text-red-600'}>{transaction.type}</span></p>
-                          <p><strong>Amount:</strong> ${transaction.amount}</p>
-                          <p><strong>Description:</strong> {transaction.description}</p>
-                          <p><strong>Category:</strong> {transaction.category}</p>
+            
+            {users.length === 0 ? (
+              <p className="text-muted-foreground">No users registered yet.</p>
+            ) : (
+              <div className="space-y-2">
+                {users.map((user, index) => (
+                  <div key={index} className="p-3 border rounded-lg">
+                    <div className="font-medium">{user.name}</div>
+                    <div className="text-sm text-muted-foreground">{user.email}</div>
+                    <div className="text-xs text-muted-foreground">ID: {user.id}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+          
+          <TabsContent value="transactions" className="space-y-4">
+            <h3 className="text-lg font-semibold">All Transactions</h3>
+            
+            {transactions.length === 0 ? (
+              <p className="text-muted-foreground">No transactions recorded yet.</p>
+            ) : (
+              <div className="space-y-2">
+                {transactions.map((transaction, index) => (
+                  <div key={index} className="p-3 border rounded-lg">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <div className="font-medium">
+                          {transaction.type === 'income' ? '+' : '-'}${transaction.amount}
                         </div>
-                        <div className="text-right text-sm text-muted-foreground">
-                          <p>{new Date(transaction.date).toLocaleDateString()}</p>
-                          <p>{new Date(transaction.createdAt).toLocaleTimeString()}</p>
+                        <div className="text-sm">{transaction.description}</div>
+                        <div className="text-xs text-muted-foreground">
+                          Category: {transaction.category}
                         </div>
                       </div>
+                      <div className="text-right text-xs text-muted-foreground">
+                        <div>By: {transaction.userName}</div>
+                        <div>{transaction.userEmail}</div>
+                        <div>{new Date(transaction.date).toLocaleDateString()}</div>
+                      </div>
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );

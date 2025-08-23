@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { api } from '@/api';
 
 interface LoginFormProps {
   isOpen: boolean;
@@ -18,35 +17,27 @@ const LoginForm = ({ isOpen, onClose, onSuccess }: LoginFormProps) => {
     email: '',
     password: '',
   });
-  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-
-    try {
-      let response;
-      if (isLogin) {
-        response = await api.login({ email: formData.email, password: formData.password });
-      } else {
-        response = await api.register(formData);
-      }
-
-      if (response.token) {
-        localStorage.setItem('token', response.token);
-        localStorage.setItem('user', JSON.stringify(response.user || { email: formData.email, name: formData.name }));
-        alert(isLogin ? 'Login successful!' : 'Registration successful!');
-        onSuccess();
-        onClose();
-      } else {
-        alert(response.message || 'Authentication failed');
-      }
-    } catch (error) {
-      console.error('Auth error:', error);
-      alert('Authentication failed. Please try again.');
-    } finally {
-      setLoading(false);
-    }
+    
+    // Simple demo authentication
+    const userData = {
+      name: formData.name || 'Demo User',
+      email: formData.email,
+      id: Date.now()
+    };
+    
+    localStorage.setItem('token', 'demo-token-' + Date.now());
+    localStorage.setItem('user', JSON.stringify(userData));
+    
+    // Store user data for admin view
+    const users = JSON.parse(localStorage.getItem('allUsers') || '[]');
+    users.push(userData);
+    localStorage.setItem('allUsers', JSON.stringify(users));
+    
+    onSuccess();
+    onClose();
   };
 
   return (
@@ -95,8 +86,8 @@ const LoginForm = ({ isOpen, onClose, onSuccess }: LoginFormProps) => {
           </div>
 
           <div className="flex flex-col gap-2">
-            <Button type="submit" disabled={loading} className="w-full">
-              {loading ? 'Please wait...' : (isLogin ? 'Login' : 'Sign Up')}
+            <Button type="submit" className="w-full">
+              {isLogin ? 'Login' : 'Sign Up'}
             </Button>
             
             <Button 
