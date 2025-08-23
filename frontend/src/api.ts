@@ -2,6 +2,13 @@ const API_BASE_URL = process.env.NODE_ENV === 'production'
   ? 'https://wallet-whisperer-backend.vercel.app/api' 
   : 'http://localhost:5000/api';
 
+// Mock signup for testing
+const mockSignup = () => {
+  localStorage.setItem('token', 'mock-token');
+  localStorage.setItem('user', JSON.stringify({name: 'Test User', email: 'test@test.com'}));
+  window.location.reload();
+};
+
 export const api = {
   register: async (userData: { name: string; email: string; password: string }) => {
     const response = await fetch(`${API_BASE_URL}/auth/register`, {

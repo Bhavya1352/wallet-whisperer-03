@@ -25,6 +25,22 @@ const LoginForm = ({ isOpen, onClose, onSuccess }: LoginFormProps) => {
     setLoading(true);
 
     try {
+      // Mock authentication for demo
+      const mockToken = 'demo-token-' + Date.now();
+      const mockUser = {
+        name: formData.name || 'Demo User',
+        email: formData.email,
+        id: Date.now()
+      };
+      
+      localStorage.setItem('token', mockToken);
+      localStorage.setItem('user', JSON.stringify(mockUser));
+      alert(isLogin ? 'Login successful!' : 'Registration successful!');
+      onSuccess();
+      onClose();
+      
+      // Uncomment below for real API
+      /*
       let response;
       if (isLogin) {
         response = await api.login({ email: formData.email, password: formData.password });
@@ -41,6 +57,7 @@ const LoginForm = ({ isOpen, onClose, onSuccess }: LoginFormProps) => {
       } else {
         alert(response.message || 'Something went wrong');
       }
+      */
     } catch (error) {
       console.error('Auth error:', error);
       alert('Authentication failed');
