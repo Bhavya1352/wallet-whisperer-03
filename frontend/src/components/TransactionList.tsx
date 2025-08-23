@@ -1,4 +1,6 @@
 import { ArrowUpRight, ArrowDownLeft, Coffee, Car, Home, ShoppingBag } from "lucide-react";
+import { useState, useEffect } from "react";
+import { api } from "@/api";
 
 interface Transaction {
   id: string;
@@ -59,6 +61,30 @@ const mockTransactions: Transaction[] = [
 ];
 
 const TransactionList = () => {
+  const [transactions, setTransactions] = useState(mockTransactions);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    fetchTransactions();
+  }, []);
+
+  const fetchTransactions = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      if (token) {
+        const data = await api.getTransactions(token);
+        if (data.transactions) {
+          setTransactions(data.transactions.slice(0, 5)); // Show only 5 recent
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching transactions:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="finance-card p-6">
       <div className="flex items-center justify-between mb-6">

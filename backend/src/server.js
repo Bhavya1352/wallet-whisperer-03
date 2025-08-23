@@ -1,10 +1,9 @@
 // backend/src/server.js
+require('dotenv').config();
+
 const express = require("express");
-const dotenv = require("dotenv");
 const mongoose = require("mongoose");
 const cors = require("cors");
-
-dotenv.config();
 
 const app = express();
 
@@ -17,6 +16,13 @@ app.get("/", (req, res) => {
   res.send("API is running...");
 });
 
+// Import routes
+const authRoutes = require("./routes/authroutes.js");
+const transactionRoutes = require("./routes/transactionRoutes.js");
+
+app.use("/api/auth", authRoutes);
+app.use("/api/transactions", transactionRoutes);
+
 // DB Connection
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB Connected"))
@@ -24,12 +30,4 @@ mongoose.connect(process.env.MONGO_URI)
 
 // Start server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${5000}`));
-// const authRoutes = require("./routes/authroutes.js");
-const authRoutes = require("../routes/authroutes.js");
-app.use("/api/auth", authRoutes);
-
-// app.use("/api/auth", authRoutes);
-const transactionRoutes = require("./routes/transactionRoutes.js");
-app.use("/api/transactions", transactionRoutes);
-
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

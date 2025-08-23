@@ -2,10 +2,15 @@ import { Wallet, TrendingUp, TrendingDown, PiggyBank, CreditCard, Target } from 
 import StatsCard from "./StatsCard";
 import TransactionList from "./TransactionList";
 import SpendingChart from "./SpendingChart";
+import AddTransactionForm from "./AddTransactionForm";
+import { useState } from "react";
 
 const Dashboard = () => {
+  const [showExpenseForm, setShowExpenseForm] = useState(false);
+  const [showIncomeForm, setShowIncomeForm] = useState(false);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20 py-8">
+    <div id="dashboard" className="min-h-screen bg-gradient-to-br from-background to-secondary/20 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="space-y-8">
           {/* Header */}
@@ -65,11 +70,17 @@ const Dashboard = () => {
               <div className="finance-card p-6">
                 <h3 className="text-xl font-semibold mb-4">Quick Actions</h3>
                 <div className="grid grid-cols-2 gap-3">
-                  <button className="p-4 rounded-xl border border-border/50 hover:border-primary/50 transition-colors group">
+                  <button 
+                    onClick={() => setShowExpenseForm(true)}
+                    className="p-4 rounded-xl border border-border/50 hover:border-primary/50 transition-colors group"
+                  >
                     <CreditCard className="h-6 w-6 text-primary mx-auto mb-2 group-hover:scale-110 transition-transform" />
                     <p className="text-sm font-medium">Add Expense</p>
                   </button>
-                  <button className="p-4 rounded-xl border border-border/50 hover:border-success/50 transition-colors group">
+                  <button 
+                    onClick={() => setShowIncomeForm(true)}
+                    className="p-4 rounded-xl border border-border/50 hover:border-success/50 transition-colors group"
+                  >
                     <TrendingUp className="h-6 w-6 text-success mx-auto mb-2 group-hover:scale-110 transition-transform" />
                     <p className="text-sm font-medium">Add Income</p>
                   </button>
@@ -90,6 +101,18 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+      
+      {/* Transaction Forms */}
+      <AddTransactionForm 
+        isOpen={showExpenseForm} 
+        onClose={() => setShowExpenseForm(false)} 
+        type="expense" 
+      />
+      <AddTransactionForm 
+        isOpen={showIncomeForm} 
+        onClose={() => setShowIncomeForm(false)} 
+        type="income" 
+      />
     </div>
   );
 };
