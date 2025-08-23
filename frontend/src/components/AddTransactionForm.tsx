@@ -28,29 +28,29 @@ const AddTransactionForm = ({ isOpen, onClose, type }: AddTransactionFormProps) 
     e.preventDefault();
     setLoading(true);
 
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        alert('Please login first');
-        return;
-      }
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('Please login first');
+      setLoading(false);
+      return;
+    }
 
-      await api.addTransaction(token, {
-        ...formData,
-        amount: parseFloat(formData.amount),
-        type,
-        date: new Date().toISOString(),
-      });
+    const result = await api.addTransaction(token, {
+      ...formData,
+      amount: parseFloat(formData.amount),
+      type,
+      date: new Date().toISOString(),
+    });
 
+    if (result.success) {
       alert('Transaction added successfully!');
       setFormData({ amount: '', description: '', category: '' });
       onClose();
-    } catch (error) {
-      console.error('Error adding transaction:', error);
+    } else {
       alert('Error adding transaction');
-    } finally {
-      setLoading(false);
     }
+    
+    setLoading(false);
   };
 
   return (
