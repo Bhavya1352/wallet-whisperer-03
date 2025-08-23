@@ -3,11 +3,17 @@ import StatsCard from "./StatsCard";
 import TransactionList from "./TransactionList";
 import SpendingChart from "./SpendingChart";
 import AddTransactionForm from "./AddTransactionForm";
+import BudgetForm from "./BudgetForm";
+import GoalForm from "./GoalForm";
+import GoalsView from "./GoalsView";
 import { useState } from "react";
 
 const Dashboard = () => {
   const [showExpenseForm, setShowExpenseForm] = useState(false);
   const [showIncomeForm, setShowIncomeForm] = useState(false);
+  const [showBudgetForm, setShowBudgetForm] = useState(false);
+  const [showGoalForm, setShowGoalForm] = useState(false);
+  const [showGoalsView, setShowGoalsView] = useState(false);
 
   return (
     <div id="dashboard" className="min-h-screen bg-gradient-to-br from-background to-secondary/20 py-8">
@@ -84,11 +90,17 @@ const Dashboard = () => {
                     <TrendingUp className="h-6 w-6 text-success mx-auto mb-2 group-hover:scale-110 transition-transform" />
                     <p className="text-sm font-medium">Add Income</p>
                   </button>
-                  <button className="p-4 rounded-xl border border-border/50 hover:border-warning/50 transition-colors group">
+                  <button 
+                    onClick={() => setShowBudgetForm(true)}
+                    className="p-4 rounded-xl border border-border/50 hover:border-warning/50 transition-colors group"
+                  >
                     <PiggyBank className="h-6 w-6 text-warning mx-auto mb-2 group-hover:scale-110 transition-transform" />
                     <p className="text-sm font-medium">Set Budget</p>
                   </button>
-                  <button className="p-4 rounded-xl border border-border/50 hover:border-accent/50 transition-colors group">
+                  <button 
+                    onClick={() => setShowGoalsView(true)}
+                    className="p-4 rounded-xl border border-border/50 hover:border-accent/50 transition-colors group"
+                  >
                     <Target className="h-6 w-6 text-accent mx-auto mb-2 group-hover:scale-110 transition-transform" />
                     <p className="text-sm font-medium">View Goals</p>
                   </button>
@@ -112,6 +124,18 @@ const Dashboard = () => {
         isOpen={showIncomeForm} 
         onClose={() => setShowIncomeForm(false)} 
         type="income" 
+      />
+      <BudgetForm 
+        isOpen={showBudgetForm} 
+        onClose={() => setShowBudgetForm(false)} 
+      />
+      <GoalForm 
+        isOpen={showGoalForm} 
+        onClose={() => setShowGoalForm(false)} 
+      />
+      <GoalsView 
+        isOpen={showGoalsView} 
+        onClose={() => setShowGoalsView(false)} 
       />
     </div>
   );

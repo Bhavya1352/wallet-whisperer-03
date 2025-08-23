@@ -1,11 +1,19 @@
 import { Button } from "@/components/ui/button";
-import { TrendingUp, Wallet, Bell, User } from "lucide-react";
+import { TrendingUp, Wallet, Bell, User, Settings } from "lucide-react";
 import { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
 import LoginForm from "./LoginForm";
+import AdminPanel from "./AdminPanel";
+import GoalForm from "./GoalForm";
+import NotificationPanel from "./NotificationPanel";
 
 const Navbar = () => {
   const [showLogin, setShowLogin] = useState(false);
+  const [showAdmin, setShowAdmin] = useState(false);
+  const [showGoalForm, setShowGoalForm] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
   const [user, setUser] = useState(null);
+  const location = useLocation();
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -37,26 +45,57 @@ const Navbar = () => {
 
           {/* Nav Links */}
           <div className="hidden md:flex items-center space-x-8">
-            <a href="#" className="text-foreground/80 hover:text-foreground transition-colors">
+            <Link 
+              to="/" 
+              className={`transition-colors ${
+                location.pathname === '/' ? 'text-primary font-medium' : 'text-foreground/80 hover:text-foreground'
+              }`}
+            >
               Dashboard
-            </a>
-            <a href="#" className="text-foreground/80 hover:text-foreground transition-colors">
+            </Link>
+            <Link 
+              to="/transactions" 
+              className={`transition-colors ${
+                location.pathname === '/transactions' ? 'text-primary font-medium' : 'text-foreground/80 hover:text-foreground'
+              }`}
+            >
               Transactions
-            </a>
-            <a href="#" className="text-foreground/80 hover:text-foreground transition-colors">
+            </Link>
+            <Link 
+              to="/analytics" 
+              className={`transition-colors ${
+                location.pathname === '/analytics' ? 'text-primary font-medium' : 'text-foreground/80 hover:text-foreground'
+              }`}
+            >
               Analytics
-            </a>
-            <a href="#" className="text-foreground/80 hover:text-foreground transition-colors">
+            </Link>
+            <Link 
+              to="/budget" 
+              className={`transition-colors ${
+                location.pathname === '/budget' ? 'text-primary font-medium' : 'text-foreground/80 hover:text-foreground'
+              }`}
+            >
               Budget
-            </a>
+            </Link>
           </div>
 
           {/* Actions */}
           <div className="flex items-center space-x-4">
             {user ? (
               <>
-                <Button variant="ghost" size="sm" className="p-2">
+                <Button variant="ghost" size="sm" onClick={() => setShowGoalForm(true)}>
+                  <TrendingUp className="h-4 w-4 mr-2" />
+                  Goal
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => setShowAdmin(true)}>
+                  <Settings className="h-5 w-5 mr-2" />
+                  Admin
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => setShowNotifications(true)} className="p-2 relative">
                   <Bell className="h-5 w-5" />
+                  <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                    5
+                  </span>
                 </Button>
                 <Button variant="ghost" size="sm" onClick={handleLogout}>
                   <User className="h-5 w-5 mr-2" />
@@ -80,6 +119,21 @@ const Navbar = () => {
           const userData = localStorage.getItem('user');
           if (userData) setUser(JSON.parse(userData));
         }} 
+      />
+      
+      <AdminPanel 
+        isOpen={showAdmin} 
+        onClose={() => setShowAdmin(false)} 
+      />
+      
+      <GoalForm 
+        isOpen={showGoalForm} 
+        onClose={() => setShowGoalForm(false)} 
+      />
+      
+      <NotificationPanel 
+        isOpen={showNotifications} 
+        onClose={() => setShowNotifications(false)} 
       />
     </nav>
   );

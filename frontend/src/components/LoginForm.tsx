@@ -62,6 +62,7 @@ const LoginForm = ({ isOpen, onClose, onSuccess }: LoginFormProps) => {
               <Label htmlFor="name">Name</Label>
               <Input
                 id="name"
+                name="name"
                 placeholder="Enter your name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -74,6 +75,7 @@ const LoginForm = ({ isOpen, onClose, onSuccess }: LoginFormProps) => {
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
+              name="email"
               type="email"
               placeholder="Enter your email"
               value={formData.email}
@@ -86,6 +88,7 @@ const LoginForm = ({ isOpen, onClose, onSuccess }: LoginFormProps) => {
             <Label htmlFor="password">Password</Label>
             <Input
               id="password"
+              name="password"
               type="password"
               placeholder="Enter your password"
               value={formData.password}

@@ -65,6 +65,7 @@ const AddTransactionForm = ({ isOpen, onClose, type }: AddTransactionFormProps) 
             <Label htmlFor="amount">Amount</Label>
             <Input
               id="amount"
+              name="amount"
               type="number"
               step="0.01"
               placeholder="0.00"
@@ -78,6 +79,7 @@ const AddTransactionForm = ({ isOpen, onClose, type }: AddTransactionFormProps) 
             <Label htmlFor="description">Description</Label>
             <Input
               id="description"
+              name="description"
               placeholder="Enter description"
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -87,8 +89,8 @@ const AddTransactionForm = ({ isOpen, onClose, type }: AddTransactionFormProps) 
 
           <div>
             <Label htmlFor="category">Category</Label>
-            <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
-              <SelectTrigger>
+            <Select name="category" value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
+              <SelectTrigger id="category" name="category">
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
               <SelectContent>
