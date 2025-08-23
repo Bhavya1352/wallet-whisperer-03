@@ -24,46 +24,20 @@ const LoginForm = ({ isOpen, onClose, onSuccess }: LoginFormProps) => {
     e.preventDefault();
     setLoading(true);
 
-    try {
-      // Mock authentication for demo
-      const mockToken = 'demo-token-' + Date.now();
-      const mockUser = {
-        name: formData.name || 'Demo User',
-        email: formData.email,
-        id: Date.now()
-      };
-      
-      localStorage.setItem('token', mockToken);
-      localStorage.setItem('user', JSON.stringify(mockUser));
-      alert(isLogin ? 'Login successful!' : 'Registration successful!');
-      onSuccess();
-      onClose();
-      
-      // Uncomment below for real API
-      /*
-      let response;
-      if (isLogin) {
-        response = await api.login({ email: formData.email, password: formData.password });
-      } else {
-        response = await api.register(formData);
-      }
-
-      if (response.token) {
-        localStorage.setItem('token', response.token);
-        localStorage.setItem('user', JSON.stringify(response.user || { email: formData.email }));
-        alert(isLogin ? 'Login successful!' : 'Registration successful!');
-        onSuccess();
-        onClose();
-      } else {
-        alert(response.message || 'Something went wrong');
-      }
-      */
-    } catch (error) {
-      console.error('Auth error:', error);
-      alert('Authentication failed');
-    } finally {
-      setLoading(false);
-    }
+    // Mock authentication for demo
+    const mockToken = 'demo-token-' + Date.now();
+    const mockUser = {
+      name: formData.name || 'Demo User',
+      email: formData.email,
+      id: Date.now()
+    };
+    
+    localStorage.setItem('token', mockToken);
+    localStorage.setItem('user', JSON.stringify(mockUser));
+    alert(isLogin ? 'Login successful!' : 'Registration successful!');
+    setLoading(false);
+    onSuccess();
+    onClose();
   };
 
   return (
