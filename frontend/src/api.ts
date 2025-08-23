@@ -1,4 +1,6 @@
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = process.env.NODE_ENV === 'production' 
+  ? 'https://your-vercel-app.vercel.app/api' 
+  : 'http://localhost:5000/api';
 
 export const api = {
   register: async (userData: { name: string; email: string; password: string }) => {
