@@ -1,5 +1,5 @@
 const API_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://your-backend-app.railway.app/api' 
+  ? 'https://wallet-whisperer-backend.vercel.app/api' 
   : 'http://localhost:5000/api';
 
 export const api = {
