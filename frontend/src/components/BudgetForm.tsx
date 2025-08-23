@@ -24,39 +24,28 @@ const BudgetForm = ({ isOpen, onClose }: BudgetFormProps) => {
     e.preventDefault();
     setLoading(true);
 
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        alert('Please login first');
-        return;
-      }
-
-      const response = await fetch('http://localhost:5000/api/budgets', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          ...formData,
-          amount: parseFloat(formData.amount),
-        }),
-      });
-
-      const data = await response.json();
-      if (data.success) {
-        alert('Budget set successfully!');
-        setFormData({ category: '', amount: '', period: 'monthly' });
-        onClose();
-      } else {
-        alert(data.message || 'Error setting budget');
-      }
-    } catch (error) {
-      console.error('Error setting budget:', error);
-      alert('Error setting budget');
-    } finally {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('Please login first');
       setLoading(false);
+      return;
     }
+
+    // Mock budget storage
+    const existingBudgets = JSON.parse(localStorage.getItem('budgets') || '[]');
+    const newBudget = {
+      ...formData,
+      amount: parseFloat(formData.amount),
+      id: Date.now(),
+      userId: JSON.parse(localStorage.getItem('user') || '{}').id
+    };
+    existingBudgets.push(newBudget);
+    localStorage.setItem('budgets', JSON.stringify(existingBudgets));
+    
+    alert('Budget set successfully!');
+    setFormData({ category: '', amount: '', period: 'monthly' });
+    setLoading(false);
+    onClose();
   };
 
   return (

@@ -22,39 +22,29 @@ const GoalForm = ({ isOpen, onClose }: GoalFormProps) => {
     e.preventDefault();
     setLoading(true);
 
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        alert('Please login first');
-        return;
-      }
-
-      const response = await fetch('http://localhost:5000/api/goals', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          ...formData,
-          targetAmount: parseFloat(formData.targetAmount),
-        }),
-      });
-
-      const data = await response.json();
-      if (data.success) {
-        alert('Goal created successfully!');
-        setFormData({ title: '', targetAmount: '', deadline: '', category: 'Savings' });
-        onClose();
-      } else {
-        alert(data.message || 'Error creating goal');
-      }
-    } catch (error) {
-      console.error('Error creating goal:', error);
-      alert('Error creating goal');
-    } finally {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('Please login first');
       setLoading(false);
+      return;
     }
+
+    // Mock goal storage
+    const existingGoals = JSON.parse(localStorage.getItem('goals') || '[]');
+    const newGoal = {
+      ...formData,
+      targetAmount: parseFloat(formData.targetAmount),
+      currentAmount: 0,
+      id: Date.now(),
+      userId: JSON.parse(localStorage.getItem('user') || '{}').id
+    };
+    existingGoals.push(newGoal);
+    localStorage.setItem('goals', JSON.stringify(existingGoals));
+    
+    alert('Goal created successfully!');
+    setFormData({ title: '', targetAmount: '', deadline: '', category: 'Savings' });
+    setLoading(false);
+    onClose();
   };
 
   return (
