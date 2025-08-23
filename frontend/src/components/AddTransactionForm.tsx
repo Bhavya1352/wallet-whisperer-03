@@ -28,29 +28,33 @@ const AddTransactionForm = ({ isOpen, onClose, type }: AddTransactionFormProps) 
     e.preventDefault();
     setLoading(true);
 
-    const token = localStorage.getItem('token');
-    if (!token) {
-      alert('Please login first');
-      setLoading(false);
-      return;
-    }
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('Please login first');
+        return;
+      }
 
-    const result = await api.addTransaction(token, {
-      ...formData,
-      amount: parseFloat(formData.amount),
-      type,
-      date: new Date().toISOString(),
-    });
+      const response = await api.addTransaction(token, {
+        ...formData,
+        amount: parseFloat(formData.amount),
+        type,
+        date: new Date().toISOString(),
+      });
 
-    if (result.success) {
-      alert('Transaction added successfully!');
-      setFormData({ amount: '', description: '', category: '' });
-      onClose();
-    } else {
+      if (response.success) {
+        alert('Transaction added successfully!');
+        setFormData({ amount: '', description: '', category: '' });
+        onClose();
+      } else {
+        alert(response.message || 'Error adding transaction');
+      }
+    } catch (error) {
+      console.error('Error adding transaction:', error);
       alert('Error adding transaction');
+    } finally {
+      setLoading(false);
     }
-    
-    setLoading(false);
   };
 
   return (
@@ -65,7 +69,6 @@ const AddTransactionForm = ({ isOpen, onClose, type }: AddTransactionFormProps) 
             <Label htmlFor="amount">Amount</Label>
             <Input
               id="amount"
-              name="amount"
               type="number"
               step="0.01"
               placeholder="0.00"
@@ -79,7 +82,6 @@ const AddTransactionForm = ({ isOpen, onClose, type }: AddTransactionFormProps) 
             <Label htmlFor="description">Description</Label>
             <Input
               id="description"
-              name="description"
               placeholder="Enter description"
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -89,8 +91,8 @@ const AddTransactionForm = ({ isOpen, onClose, type }: AddTransactionFormProps) 
 
           <div>
             <Label htmlFor="category">Category</Label>
-            <Select name="category" value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
-              <SelectTrigger id="category" name="category">
+            <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
+              <SelectTrigger>
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
               <SelectContent>

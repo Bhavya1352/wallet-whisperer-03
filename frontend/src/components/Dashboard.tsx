@@ -6,7 +6,7 @@ import AddTransactionForm from "./AddTransactionForm";
 import BudgetForm from "./BudgetForm";
 import GoalForm from "./GoalForm";
 import GoalsView from "./GoalsView";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const Dashboard = () => {
   const [showExpenseForm, setShowExpenseForm] = useState(false);
@@ -14,20 +14,35 @@ const Dashboard = () => {
   const [showBudgetForm, setShowBudgetForm] = useState(false);
   const [showGoalForm, setShowGoalForm] = useState(false);
   const [showGoalsView, setShowGoalsView] = useState(false);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      setUser(JSON.parse(userData));
+    }
+  }, []);
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20 py-8">
+        <div className="max-w-7xl mx-auto px-4 text-center">
+          <h2 className="text-4xl font-bold gradient-text mb-4">Welcome to Wallet Whisperer</h2>
+          <p className="text-xl text-muted-foreground">Please login to access your dashboard</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div id="dashboard" className="min-h-screen bg-gradient-to-br from-background to-secondary/20 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="space-y-8">
-          {/* Header */}
           <div className="text-center space-y-4">
             <h2 className="text-4xl font-bold gradient-text">Financial Dashboard</h2>
-            <p className="text-xl text-muted-foreground">
-              Get insights into your spending patterns and financial health
-            </p>
+            <p className="text-xl text-muted-foreground">Welcome back, {user.name}!</p>
           </div>
 
-          {/* Stats Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <StatsCard
               title="Total Balance"
@@ -63,16 +78,12 @@ const Dashboard = () => {
             />
           </div>
 
-          {/* Main Content Grid */}
           <div className="grid lg:grid-cols-3 gap-8">
-            {/* Spending Chart */}
             <div className="lg:col-span-2">
               <SpendingChart />
             </div>
 
-            {/* Quick Actions & Recent Transactions */}
             <div className="space-y-6">
-              {/* Quick Actions */}
               <div className="finance-card p-6">
                 <h3 className="text-xl font-semibold mb-4">Quick Actions</h3>
                 <div className="grid grid-cols-2 gap-3">
@@ -107,14 +118,12 @@ const Dashboard = () => {
                 </div>
               </div>
 
-              {/* Recent Transactions */}
               <TransactionList />
             </div>
           </div>
         </div>
       </div>
       
-      {/* Transaction Forms */}
       <AddTransactionForm 
         isOpen={showExpenseForm} 
         onClose={() => setShowExpenseForm(false)} 
