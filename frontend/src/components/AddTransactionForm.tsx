@@ -25,26 +25,36 @@ const AddTransactionForm = ({ isOpen, onClose, type }: AddTransactionFormProps) 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!formData.amount || !formData.description || !formData.category) {
+      alert('Please fill all fields');
+      return;
+    }
+
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     const transaction = {
-      ...formData,
       amount: parseFloat(formData.amount),
+      description: formData.description,
+      category: formData.category,
       type,
       id: Date.now(),
       date: new Date().toISOString(),
-      userId: user.id,
-      userName: user.name,
-      userEmail: user.email
+      userId: user.id || Date.now(),
+      userName: user.name || 'Unknown User',
+      userEmail: user.email || 'unknown@email.com'
     };
 
-    // Store transaction
-    const transactions = JSON.parse(localStorage.getItem('allTransactions') || '[]');
-    transactions.push(transaction);
-    localStorage.setItem('allTransactions', JSON.stringify(transactions));
-
-    alert(`${type === 'income' ? 'Income' : 'Expense'} added successfully!`);
-    setFormData({ amount: '', description: '', category: '' });
-    onClose();
+    try {
+      const transactions = JSON.parse(localStorage.getItem('allTransactions') || '[]');
+      transactions.push(transaction);
+      localStorage.setItem('allTransactions', JSON.stringify(transactions));
+      
+      alert(`${type === 'income' ? 'Income' : 'Expense'} added successfully!`);
+      setFormData({ amount: '', description: '', category: '' });
+      onClose();
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Error adding transaction');
+    }
   };
 
   return (

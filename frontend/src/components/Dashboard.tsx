@@ -1,4 +1,4 @@
-import { Wallet, TrendingUp, TrendingDown, PiggyBank, CreditCard, Target } from "lucide-react";
+import { Wallet, TrendingUp, TrendingDown, PiggyBank, CreditCard, Target, Brain } from "lucide-react";
 import StatsCard from "./StatsCard";
 import TransactionList from "./TransactionList";
 import SpendingChart from "./SpendingChart";
@@ -6,6 +6,7 @@ import AddTransactionForm from "./AddTransactionForm";
 import BudgetForm from "./BudgetForm";
 import GoalForm from "./GoalForm";
 import GoalsView from "./GoalsView";
+import SmartInsights from "./SmartInsights";
 import { useState, useEffect } from "react";
 
 const Dashboard = () => {
@@ -14,6 +15,7 @@ const Dashboard = () => {
   const [showBudgetForm, setShowBudgetForm] = useState(false);
   const [showGoalForm, setShowGoalForm] = useState(false);
   const [showGoalsView, setShowGoalsView] = useState(false);
+  const [showSmartInsights, setShowSmartInsights] = useState(false);
   const [user, setUser] = useState(null);
 
   useEffect(() => {
@@ -116,9 +118,33 @@ const Dashboard = () => {
                     <p className="text-sm font-medium">View Goals</p>
                   </button>
                 </div>
+                
+                <button 
+                  onClick={() => setShowSmartInsights(true)}
+                  className="w-full mt-4 p-4 rounded-xl bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600 transition-all group"
+                >
+                  <Brain className="h-6 w-6 mx-auto mb-2 group-hover:scale-110 transition-transform" />
+                  <p className="font-medium">🧠 Smart Insights</p>
+                  <p className="text-xs opacity-90">AI-powered analysis</p>
+                </button>
+              </div>
+              
+              {showSmartInsights && (
+                <div className="finance-card p-6">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-xl font-semibold">Smart Financial Insights</h3>
+                    <button 
+                      onClick={() => setShowSmartInsights(false)}
+                      className="text-gray-500 hover:text-gray-700"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <SmartInsights userId={user?._id} />
+                </div>
               </div>
 
-              <TransactionList />
+              {!showSmartInsights && <TransactionList />}
             </div>
           </div>
         </div>
@@ -126,21 +152,33 @@ const Dashboard = () => {
       
       <AddTransactionForm 
         isOpen={showExpenseForm} 
-        onClose={() => setShowExpenseForm(false)} 
+        onClose={() => {
+          setShowExpenseForm(false);
+          window.location.reload(); // Refresh to show new data
+        }} 
         type="expense" 
       />
       <AddTransactionForm 
         isOpen={showIncomeForm} 
-        onClose={() => setShowIncomeForm(false)} 
+        onClose={() => {
+          setShowIncomeForm(false);
+          window.location.reload(); // Refresh to show new data
+        }} 
         type="income" 
       />
       <BudgetForm 
         isOpen={showBudgetForm} 
-        onClose={() => setShowBudgetForm(false)} 
+        onClose={() => {
+          setShowBudgetForm(false);
+          window.location.reload();
+        }} 
       />
       <GoalForm 
         isOpen={showGoalForm} 
-        onClose={() => setShowGoalForm(false)} 
+        onClose={() => {
+          setShowGoalForm(false);
+          window.location.reload();
+        }} 
       />
       <GoalsView 
         isOpen={showGoalsView} 
