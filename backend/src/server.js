@@ -258,8 +258,69 @@ mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/wallet-whis
   })
   .catch((err) => console.error("❌ MongoDB Error:", err));
 
+// USER TRANSACTION ROUTES
+app.get("/api/transactions", async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ message: 'No token provided' });
+    }
+    
+    // For now, return all transactions (in real app, filter by user)
+    const transactions = await Transaction.find().sort({ date: -1 });
+    
+    console.log(`📋 User requested ${transactions.length} transactions`);
+    
+    res.json({
+      success: true,
+      transactions: transactions
+    });
+  } catch (error) {
+    console.error('Get transactions error:', error.message);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+app.post("/api/transactions", async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ message: 'No token provided' });
+    }
+    
+    const { type, amount, description, category } = req.body;
+    
+    // Create transaction (using first user for demo)
+    const firstUser = await User.findOne();
+    if (!firstUser) {
+      return res.status(400).json({ message: 'No users found. Create sample data first.' });
+    }
+    
+    const transaction = new Transaction({
+      userId: firstUser._id,
+      type,
+      amount: parseFloat(amount),
+      description,
+      category
+    });
+    
+    await transaction.save();
+    
+    console.log(`💰 New ${type}: $${amount} - ${description}`);
+    
+    res.json({
+      success: true,
+      message: 'Transaction added successfully',
+      transaction
+    });
+  } catch (error) {
+    console.error('Add transaction error:', error.message);
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // Start server
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`🌐 API URL: http://localhost:${PORT}`);
