@@ -8,10 +8,31 @@ const HeroSection = () => {
   const navigate = useNavigate();
 
   const handleGetStarted = () => {
-    // Scroll to dashboard section
-    const dashboardElement = document.getElementById('dashboard');
-    if (dashboardElement) {
-      dashboardElement.scrollIntoView({ behavior: 'smooth' });
+    // Check if user is logged in
+    const user = localStorage.getItem('user');
+    
+    if (user) {
+      // User is logged in, scroll to dashboard
+      const dashboardElement = document.getElementById('dashboard');
+      if (dashboardElement) {
+        dashboardElement.scrollIntoView({ behavior: 'smooth' });
+      } else {
+        // If dashboard not found, scroll down to show it
+        window.scrollTo({ top: window.innerHeight, behavior: 'smooth' });
+      }
+    } else {
+      // User not logged in, create demo user and show dashboard
+      const demoUser = {
+        _id: 'demo-user-' + Date.now(),
+        name: 'Demo User',
+        email: 'demo@walletwhisperer.com'
+      };
+      
+      localStorage.setItem('user', JSON.stringify(demoUser));
+      localStorage.setItem('token', 'demo-token-' + Date.now());
+      
+      // Refresh page to show dashboard with demo user
+      window.location.reload();
     }
   };
 
@@ -70,7 +91,12 @@ const HeroSection = () => {
                 Get Started Now
                 <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
               </Button>
-              <Button variant="outline" size="lg" className="border-border/50 hover:border-primary/50">
+              <Button 
+                variant="outline" 
+                size="lg" 
+                className="border-border/50 hover:border-primary/50"
+                onClick={() => window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })}
+              >
                 View Demo
               </Button>
             </div>
