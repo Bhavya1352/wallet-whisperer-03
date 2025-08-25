@@ -356,31 +356,57 @@ app.get("/api/admin/live-transactions", async (req, res) => {
   }
 });
 
-// CLEAR OLD DATA AND RESET
-app.get("/api/admin/clear-old-data", async (req, res) => {
+// CLEAR ALL SAMPLE/DEMO DATA
+app.get("/api/admin/clear-all-sample-data", async (req, res) => {
   try {
-    // Delete old sample data
-    await Transaction.deleteMany({ description: "Sample Coffee" });
-    await User.deleteMany({ email: "john@example.com" });
+    // Delete all sample/demo data
+    await Transaction.deleteMany({ 
+      $or: [
+        { description: { $regex: /sample|demo|test/i } },
+        { description: "Sample Coffee" },
+        { description: "Starbucks Coffee" },
+        { description: "Uber Ride" },
+        { description: "Salary" },
+        { description: "Netflix Subscription" },
+        { description: "Grocery Shopping" }
+      ]
+    });
     
-    console.log(`\n🗑️ OLD SAMPLE DATA CLEARED`);
+    await User.deleteMany({ 
+      $or: [
+        { email: "john@example.com" },
+        { name: "John Doe" },
+        { email: { $regex: /demo|test|sample/i } }
+      ]
+    });
+    
+    await Budget.deleteMany({ category: { $regex: /sample|demo|test/i } });
+    await Goal.deleteMany({ title: { $regex: /sample|demo|test/i } });
+    
+    console.log(`\n🗑️ ALL SAMPLE DATA CLEARED`);
     
     const remainingUsers = await User.find().select("-password");
     const remainingTransactions = await Transaction.find().populate("userId", "name email");
+    const remainingBudgets = await Budget.find().populate("userId", "name email");
+    const remainingGoals = await Goal.find().populate("userId", "name email");
     
-    console.log(`✅ Current Users: ${remainingUsers.length}`);
-    console.log(`✅ Current Transactions: ${remainingTransactions.length}`);
+    console.log(`✅ Remaining Users: ${remainingUsers.length}`);
+    console.log(`✅ Remaining Transactions: ${remainingTransactions.length}`);
+    console.log(`✅ Remaining Budgets: ${remainingBudgets.length}`);
+    console.log(`✅ Remaining Goals: ${remainingGoals.length}`);
     
     res.json({
       success: true,
-      message: "Old data cleared successfully!",
-      currentUsers: remainingUsers.length,
-      currentTransactions: remainingTransactions.length,
-      users: remainingUsers,
-      transactions: remainingTransactions
+      message: "All sample data cleared successfully!",
+      remaining: {
+        users: remainingUsers.length,
+        transactions: remainingTransactions.length,
+        budgets: remainingBudgets.length,
+        goals: remainingGoals.length
+      }
     });
   } catch (error) {
-    console.error('Clear data error:', error.message);
+    console.error('Clear sample data error:', error.message);
     res.status(500).json({ message: error.message });
   }
 });
@@ -659,6 +685,7 @@ app.listen(PORT, () => {
   console.log(`🎯 Goals: http://localhost:${PORT}/api/goals`);
   console.log(`🔑 Auth: http://localhost:${PORT}/api/auth/register (POST)`);
   console.log(`🔑 Login: http://localhost:${PORT}/api/auth/login (POST)`);
+  console.log(`🗑️ Clear Sample Data: http://localhost:${PORT}/api/admin/clear-all-sample-data`);
   console.log(`🎯 Create Sample: http://localhost:${PORT}/api/admin/create-sample`);
   console.log("👀 Models registered - Ready to track entries!");
 });

@@ -12,53 +12,7 @@ interface Transaction {
   icon: any;
 }
 
-const mockTransactions: Transaction[] = [
-  {
-    id: '1',
-    type: 'income',
-    amount: 2500,
-    description: 'Salary Deposit',
-    category: 'Salary',
-    date: '2024-01-15',
-    icon: ArrowUpRight
-  },
-  {
-    id: '2',
-    type: 'expense',
-    amount: 45.99,
-    description: 'Grocery Shopping',
-    category: 'Food',
-    date: '2024-01-14',
-    icon: ShoppingBag
-  },
-  {
-    id: '3',
-    type: 'expense',
-    amount: 15.50,
-    description: 'Coffee Shop',
-    category: 'Food',
-    date: '2024-01-14',
-    icon: Coffee
-  },
-  {
-    id: '4',
-    type: 'expense',
-    amount: 85.00,
-    description: 'Gas Station',
-    category: 'Transport',
-    date: '2024-01-13',
-    icon: Car
-  },
-  {
-    id: '5',
-    type: 'expense',
-    amount: 1200.00,
-    description: 'Rent Payment',
-    category: 'Housing',
-    date: '2024-01-01',
-    icon: Home
-  }
-];
+// No mock data - only real user transactions
 
 const TransactionList = () => {
   const [transactions, setTransactions] = useState([]);
@@ -89,8 +43,8 @@ const TransactionList = () => {
           }));
           setTransactions(formattedTransactions);
         } else {
-          // Show sample data if no transactions
-          setTransactions(mockTransactions.slice(0, 3));
+          // No transactions found
+          setTransactions([]);
         }
       }
     } catch (error) {
