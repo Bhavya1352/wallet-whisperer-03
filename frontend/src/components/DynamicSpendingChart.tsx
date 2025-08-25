@@ -1,130 +1,118 @@
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const DynamicSpendingChart = () => {
   const [chartData, setChartData] = useState([]);
-  const [pieData, setPieData] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [hasData, setHasData] = useState(false);
 
   useEffect(() => {
-    generateChartData();
+    fetchChartData();
   }, []);
 
-  const generateChartData = () => {
-    const transactions = JSON.parse(localStorage.getItem('allTransactions') || '[]');
-    
-    if (transactions.length === 0) {
-      setHasData(false);
-      return;
-    }
-
-    setHasData(true);
-
-    // Generate monthly data for last 6 months
-    const monthlyData = [];
-    const categoryData = {};
-    
-    for (let i = 5; i >= 0; i--) {
-      const date = new Date();
-      date.setMonth(date.getMonth() - i);
-      const monthName = date.toLocaleDateString('en-US', { month: 'short' });
-      
-      let income = 0;
-      let expenses = 0;
-      
-      transactions.forEach(transaction => {
-        const transactionDate = new Date(transaction.date);
-        if (transactionDate.getMonth() === date.getMonth() && 
-            transactionDate.getFullYear() === date.getFullYear()) {
-          if (transaction.type === 'income') {
-            income += transaction.amount;
-          } else {
-            expenses += transaction.amount;
-            // Category data for pie chart
-            categoryData[transaction.category] = (categoryData[transaction.category] || 0) + transaction.amount;
-          }
+  const fetchChartData = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:3001/api/transactions', {
+        headers: {
+          'Authorization': `Bearer ${token || 'demo-token'}`
         }
       });
       
-      monthlyData.push({
-        month: monthName,
-        income,
-        expenses
-      });
+      if (response.ok) {
+        const data = await response.json();
+        const transactions = data.transactions || [];
+        
+        // Group expenses by category
+        const expensesByCategory = {};
+        transactions
+          .filter(t => t.type === 'expense')
+          .forEach(t => {
+            expensesByCategory[t.category] = (expensesByCategory[t.category] || 0) + t.amount;
+          });
+        
+        const chartData = Object.entries(expensesByCategory).map(([category, amount]) => ({
+          name: category,
+          value: amount
+        }));
+        
+        setChartData(chartData);
+        setHasData(chartData.length > 0);
+      }
+    } catch (error) {
+      console.log('Chart data fetch error:', error);
+    } finally {
+      setLoading(false);
     }
-    
-    // Convert category data to pie chart format
-    const pieChartData = Object.entries(categoryData).map(([category, amount]) => ({
-      name: category,
-      value: amount
-    }));
-    
-    setChartData(monthlyData);
-    setPieData(pieChartData);
   };
 
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'];
+  const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#8dd1e1', '#d084d0'];
 
-  if (!hasData) {
+  if (loading) {
     return (
-      <div className="finance-card p-6">
-        <h3 className="text-xl font-semibold mb-6">Spending Analytics</h3>
-        <div className="text-center py-12">
-          <div className="text-6xl mb-4">📊</div>
-          <h4 className="text-lg font-medium mb-2">No Data Yet</h4>
-          <p className="text-muted-foreground">Add some transactions to see your spending analytics</p>
-        </div>
-      </div>
+      <Card className="finance-card">
+        <CardHeader>
+          <CardTitle>Spending by Category</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-64 flex items-center justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <div className="finance-card p-6">
-      <h3 className="text-xl font-semibold mb-6">Spending Analytics</h3>
-      
-      <div className="space-y-8">
-        {/* Monthly Income vs Expenses */}
-        <div>
-          <h4 className="text-lg font-medium mb-4">Monthly Overview</h4>
+    <Card className="finance-card">
+      <CardHeader>
+        <CardTitle className="flex items-center justify-between">
+          Spending by Category
+          {hasData && (
+            <span className="text-sm text-muted-foreground font-normal">
+              {chartData.length} categories
+            </span>
+          )}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {hasData ? (
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
-              <YAxis />
-              <Tooltip formatter={(value) => [`$${value.toFixed(2)}`, '']} />
-              <Bar dataKey="income" fill="#10B981" name="Income" />
-              <Bar dataKey="expenses" fill="#F59E0B" name="Expenses" />
-            </BarChart>
+            <PieChart>
+              <Pie
+                data={chartData}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                outerRadius={80}
+                fill="#8884d8"
+                dataKey="value"
+              >
+                {chartData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip formatter={(value) => [`$${value.toFixed(2)}`, 'Amount']} />
+              <Legend />
+            </PieChart>
           </ResponsiveContainer>
-        </div>
-
-        {/* Category Breakdown */}
-        {pieData.length > 0 && (
-          <div>
-            <h4 className="text-lg font-medium mb-4">Expense Categories</h4>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={pieData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {pieData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value) => [`$${value.toFixed(2)}`, 'Amount']} />
-              </PieChart>
-            </ResponsiveContainer>
+        ) : (
+          <div className="h-64 flex flex-col items-center justify-center text-center space-y-4">
+            <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
+              <PieChart className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <div>
+              <h3 className="font-medium text-muted-foreground">No Data Yet</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Add some expense transactions to see your spending breakdown
+              </p>
+            </div>
           </div>
         )}
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 

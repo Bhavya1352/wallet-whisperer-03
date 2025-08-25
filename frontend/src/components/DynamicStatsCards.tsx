@@ -1,98 +1,142 @@
-import { Wallet, TrendingUp, TrendingDown, Target } from "lucide-react";
-import StatsCard from "./StatsCard";
 import { useState, useEffect } from "react";
+import { Wallet, TrendingUp, TrendingDown, PiggyBank } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const DynamicStatsCards = () => {
   const [stats, setStats] = useState({
     totalBalance: 0,
-    monthlyIncome: 0,
-    monthlyExpenses: 0,
-    savingsGoal: 0
+    totalIncome: 0,
+    totalExpenses: 0,
+    savings: 0
   });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    calculateStats();
+    fetchStats();
   }, []);
 
-  const calculateStats = () => {
-    const transactions = JSON.parse(localStorage.getItem('allTransactions') || '[]');
-    const goals = JSON.parse(localStorage.getItem('goals') || '[]');
-    
-    const currentMonth = new Date().getMonth();
-    const currentYear = new Date().getFullYear();
-    
-    let monthlyIncome = 0;
-    let monthlyExpenses = 0;
-    let totalBalance = 0;
-    
-    transactions.forEach(transaction => {
-      const transactionDate = new Date(transaction.date);
-      const isCurrentMonth = transactionDate.getMonth() === currentMonth && 
-                            transactionDate.getFullYear() === currentYear;
+  const fetchStats = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:3001/api/transactions', {
+        headers: {
+          'Authorization': `Bearer ${token || 'demo-token'}`
+        }
+      });
       
-      if (transaction.type === 'income') {
-        totalBalance += transaction.amount;
-        if (isCurrentMonth) monthlyIncome += transaction.amount;
-      } else {
-        totalBalance -= transaction.amount;
-        if (isCurrentMonth) monthlyExpenses += transaction.amount;
+      if (response.ok) {
+        const data = await response.json();
+        const transactions = data.transactions || [];
+        
+        const income = transactions
+          .filter(t => t.type === 'income')
+          .reduce((sum, t) => sum + t.amount, 0);
+          
+        const expenses = transactions
+          .filter(t => t.type === 'expense')
+          .reduce((sum, t) => sum + t.amount, 0);
+          
+        const balance = income - expenses;
+        const savings = balance > 0 ? balance : 0;
+        
+        setStats({
+          totalBalance: balance,
+          totalIncome: income,
+          totalExpenses: expenses,
+          savings: savings
+        });
       }
-    });
-    
-    const totalGoals = goals.reduce((sum, goal) => sum + goal.targetAmount, 0);
-    
-    setStats({
-      totalBalance,
-      monthlyIncome,
-      monthlyExpenses,
-      savingsGoal: totalGoals
-    });
+    } catch (error) {
+      console.log('Stats fetch error:', error);
+      // Keep default $0.00 values on error
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Listen for storage changes to update stats
-  useEffect(() => {
-    const handleStorageChange = () => {
-      calculateStats();
-    };
-    
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(amount);
+  };
+
+  const statsData = [
+    {
+      title: "Total Balance",
+      value: formatCurrency(stats.totalBalance),
+      icon: Wallet,
+      color: stats.totalBalance >= 0 ? "text-success" : "text-destructive",
+      bgColor: stats.totalBalance >= 0 ? "bg-success/10" : "bg-destructive/10"
+    },
+    {
+      title: "Total Income",
+      value: formatCurrency(stats.totalIncome),
+      icon: TrendingUp,
+      color: "text-success",
+      bgColor: "bg-success/10"
+    },
+    {
+      title: "Total Expenses",
+      value: formatCurrency(stats.totalExpenses),
+      icon: TrendingDown,
+      color: "text-destructive",
+      bgColor: "bg-destructive/10"
+    },
+    {
+      title: "Savings",
+      value: formatCurrency(stats.savings),
+      icon: PiggyBank,
+      color: "text-primary",
+      bgColor: "bg-primary/10"
+    }
+  ];
+
+  if (loading) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {[1, 2, 3, 4].map((i) => (
+          <Card key={i} className="animate-pulse">
+            <CardHeader className="pb-2">
+              <div className="h-4 bg-muted rounded w-24"></div>
+            </CardHeader>
+            <CardContent>
+              <div className="h-8 bg-muted rounded w-20"></div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      <StatsCard
-        title="Total Balance"
-        amount={`$${stats.totalBalance.toFixed(2)}`}
-        change={stats.totalBalance > 0 ? "Great progress!" : "Start adding transactions"}
-        changeType={stats.totalBalance > 0 ? "positive" : "neutral"}
-        icon={Wallet}
-        variant="success"
-      />
-      <StatsCard
-        title="Monthly Income"
-        amount={`$${stats.monthlyIncome.toFixed(2)}`}
-        change={stats.monthlyIncome > 0 ? "This month's earnings" : "No income recorded"}
-        changeType={stats.monthlyIncome > 0 ? "positive" : "neutral"}
-        icon={TrendingUp}
-        variant="success"
-      />
-      <StatsCard
-        title="Monthly Expenses"
-        amount={`$${stats.monthlyExpenses.toFixed(2)}`}
-        change={stats.monthlyExpenses > 0 ? "This month's spending" : "No expenses recorded"}
-        changeType={stats.monthlyExpenses > 0 ? "negative" : "neutral"}
-        icon={TrendingDown}
-        variant="warning"
-      />
-      <StatsCard
-        title="Savings Goal"
-        amount={`$${stats.savingsGoal.toFixed(2)}`}
-        change={stats.savingsGoal > 0 ? "Target amount set" : "Set your first goal"}
-        changeType={stats.savingsGoal > 0 ? "positive" : "neutral"}
-        icon={Target}
-        variant="primary"
-      />
+      {statsData.map((stat, index) => (
+        <Card key={index} className="finance-card hover:shadow-lg transition-all duration-300 group">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              {stat.title}
+            </CardTitle>
+            <div className={`p-2 rounded-lg ${stat.bgColor} group-hover:scale-110 transition-transform`}>
+              <stat.icon className={`h-4 w-4 ${stat.color}`} />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className={`text-2xl font-bold ${stat.color}`}>
+              {stat.value}
+            </div>
+            {stats.totalIncome === 0 && stats.totalExpenses === 0 ? (
+              <p className="text-xs text-muted-foreground mt-1">
+                Add transactions to see real data
+              </p>
+            ) : (
+              <p className="text-xs text-muted-foreground mt-1">
+                Updated with your data
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
 };

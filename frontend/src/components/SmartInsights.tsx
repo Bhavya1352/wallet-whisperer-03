@@ -1,184 +1,169 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { Button } from './ui/button';
-import { Badge } from './ui/badge';
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Lightbulb, TrendingUp, AlertTriangle, CheckCircle } from "lucide-react";
 
-interface SmartInsightsProps {
-  userId?: string;
-}
-
-const SmartInsights: React.FC<SmartInsightsProps> = ({ userId }) => {
-  const [insights, setInsights] = useState<any>(null);
-  const [prediction, setPrediction] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
-
-  const fetchInsights = async () => {
-    setLoading(true);
-    try {
-      const [insightsRes, predictionRes] = await Promise.all([
-        fetch('http://localhost:3001/api/insights/weekly'),
-        fetch('http://localhost:3001/api/predict/next-month')
-      ]);
-      
-      const insightsData = await insightsRes.json();
-      const predictionData = await predictionRes.json();
-      
-      setInsights(insightsData.insights);
-      setPrediction(predictionData.prediction);
-    } catch (error) {
-      console.error('Error fetching insights:', error);
-    }
-    setLoading(false);
-  };
+const SmartInsights = () => {
+  const [insights, setInsights] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchInsights();
   }, []);
 
-  if (loading) return <div className="text-center p-4">🧠 Analyzing your finances...</div>;
+  const fetchInsights = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:3001/api/transactions', {
+        headers: {
+          'Authorization': `Bearer ${token || 'demo-token'}`
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        const transactions = data.transactions || [];
+        
+        const generatedInsights = generateInsights(transactions);
+        setInsights(generatedInsights);
+      }
+    } catch (error) {
+      console.log('Insights fetch error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const generateInsights = (transactions) => {
+    const insights = [];
+    
+    if (transactions.length === 0) {
+      return [
+        {
+          type: "info",
+          icon: Lightbulb,
+          title: "Welcome to Wallet Whisperer!",
+          message: "Start by adding your first transaction to see personalized insights.",
+          color: "text-primary"
+        }
+      ];
+    }
+
+    const income = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
+    const expenses = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+    const balance = income - expenses;
+
+    // Savings rate insight
+    if (income > 0) {
+      const savingsRate = ((income - expenses) / income) * 100;
+      if (savingsRate > 20) {
+        insights.push({
+          type: "success",
+          icon: CheckCircle,
+          title: "Great Savings Rate!",
+          message: `You're saving ${savingsRate.toFixed(1)}% of your income. Keep it up!`,
+          color: "text-success"
+        });
+      } else if (savingsRate < 10) {
+        insights.push({
+          type: "warning",
+          icon: AlertTriangle,
+          title: "Low Savings Rate",
+          message: `You're only saving ${savingsRate.toFixed(1)}% of your income. Consider reducing expenses.`,
+          color: "text-warning"
+        });
+      }
+    }
+
+    // Spending pattern insight
+    const expensesByCategory = {};
+    transactions.filter(t => t.type === 'expense').forEach(t => {
+      expensesByCategory[t.category] = (expensesByCategory[t.category] || 0) + t.amount;
+    });
+
+    const topCategory = Object.entries(expensesByCategory)
+      .sort(([,a], [,b]) => b - a)[0];
+
+    if (topCategory) {
+      const [category, amount] = topCategory;
+      const percentage = ((amount / expenses) * 100).toFixed(1);
+      insights.push({
+        type: "info",
+        icon: TrendingUp,
+        title: "Top Spending Category",
+        message: `${category} accounts for ${percentage}% of your expenses ($${amount.toFixed(2)}).`,
+        color: "text-primary"
+      });
+    }
+
+    // Balance insight
+    if (balance > 0) {
+      insights.push({
+        type: "success",
+        icon: CheckCircle,
+        title: "Positive Balance",
+        message: `You have a positive balance of $${balance.toFixed(2)}. Great financial management!`,
+        color: "text-success"
+      });
+    } else if (balance < 0) {
+      insights.push({
+        type: "warning",
+        icon: AlertTriangle,
+        title: "Negative Balance",
+        message: `Your expenses exceed income by $${Math.abs(balance).toFixed(2)}. Consider reviewing your spending.`,
+        color: "text-destructive"
+      });
+    }
+
+    return insights.slice(0, 3); // Show max 3 insights
+  };
+
+  if (loading) {
+    return (
+      <Card className="finance-card">
+        <CardHeader>
+          <CardTitle>Smart Insights</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {[1, 2].map((i) => (
+              <div key={i} className="animate-pulse flex space-x-3">
+                <div className="w-8 h-8 bg-muted rounded-full"></div>
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 bg-muted rounded w-3/4"></div>
+                  <div className="h-3 bg-muted rounded w-full"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">🧠 Smart Financial Insights</h2>
-        <Button onClick={fetchInsights} variant="outline">
-          Refresh Analysis
-        </Button>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {/* Weekly Spending Alert */}
-        <Card className="border-l-4 border-l-blue-500">
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              📊 This Week
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <p className="text-2xl font-bold text-blue-600">
-                ${insights?.weeklySpending || 0}
-              </p>
-              <p className="text-sm text-gray-600">Weekly spending</p>
-              <Badge variant={insights?.weeklySpending > 300 ? "destructive" : "secondary"}>
-                {insights?.alert || "No data"}
-              </Badge>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Savings Rate */}
-        <Card className="border-l-4 border-l-green-500">
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              💰 Savings Rate
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <p className="text-2xl font-bold text-green-600">
-                {insights?.savingsRate || "0%"}
-              </p>
-              <p className="text-sm text-gray-600">This week</p>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div 
-                  className="bg-green-500 h-2 rounded-full" 
-                  style={{ width: `${parseFloat(insights?.savingsRate) || 0}%` }}
-                ></div>
+    <Card className="finance-card">
+      <CardHeader>
+        <CardTitle className="flex items-center">
+          <Lightbulb className="h-5 w-5 mr-2" />
+          Smart Insights
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {insights.map((insight, index) => (
+            <div key={index} className="flex space-x-3 p-3 rounded-lg bg-secondary/20">
+              <div className={`p-1 rounded-full bg-background`}>
+                <insight.icon className={`h-4 w-4 ${insight.color}`} />
+              </div>
+              <div className="flex-1">
+                <h4 className="font-medium text-sm">{insight.title}</h4>
+                <p className="text-sm text-muted-foreground mt-1">{insight.message}</p>
               </div>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Next Month Prediction */}
-        <Card className="border-l-4 border-l-purple-500">
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              🔮 Next Month
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <p className="text-2xl font-bold text-purple-600">
-                ${prediction?.predictedSpending || 0}
-              </p>
-              <p className="text-sm text-gray-600">Predicted spending</p>
-              <Badge variant="outline">
-                Budget: ${prediction?.budgetSuggestion || 0}
-              </Badge>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Risk Categories */}
-      {prediction?.riskCategories?.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              ⚠️ High Spending Categories
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-2">
-              {prediction.riskCategories.map((category: string, index: number) => (
-                <Badge key={index} variant="destructive">
-                  {category}
-                </Badge>
-              ))}
-            </div>
-            <p className="text-sm text-gray-600 mt-2">
-              Consider setting limits for these categories
-            </p>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Most Expensive Day */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            📅 Spending Pattern
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            <p className="font-semibold">Most expensive day this week:</p>
-            <Badge variant="secondary" className="text-sm">
-              {insights?.mostExpensiveDay || "No data"}
-            </Badge>
-            <p className="text-xs text-gray-500">
-              Try to spread expenses more evenly throughout the week
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            🎯 Quick Actions
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-            <Button variant="outline" size="sm">
-              Set Budget Alert
-            </Button>
-            <Button variant="outline" size="sm">
-              Export Report
-            </Button>
-            <Button variant="outline" size="sm">
-              Schedule Review
-            </Button>
-            <Button variant="outline" size="sm">
-              Share Insights
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
