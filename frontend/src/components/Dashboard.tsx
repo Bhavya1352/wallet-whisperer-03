@@ -85,9 +85,6 @@ const Dashboard = () => {
                     <p className="text-sm font-medium">View Goals</p>
                   </button>
                 </div>
-                
-
-                </div>
               </div>
 
               <TransactionList />
