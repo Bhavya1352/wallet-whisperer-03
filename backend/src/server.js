@@ -251,6 +251,9 @@ mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/wallet-whis
     console.log("   Users: http://localhost:5000/api/admin/users");
     console.log("   Transactions: http://localhost:5000/api/admin/transactions");
     console.log("   Create Sample: http://localhost:5000/api/admin/create-sample (GET)");
+    console.log("   Clear Old Data: http://localhost:5000/api/admin/clear-old-data");
+    console.log("   Today's Entries: http://localhost:5000/api/admin/today-transactions");
+    console.log("   Live Monitor: http://localhost:5000/api/admin/live-transactions");
     console.log("\n🧠 SMART FEATURES:");
     console.log("   Expense Analyzer: http://localhost:5000/api/smart/analyze/USER_ID");
     console.log("   Weekly Insights: http://localhost:5000/api/insights/weekly");
@@ -290,6 +293,12 @@ app.post("/api/transactions", async (req, res) => {
     
     const { type, amount, description, category } = req.body;
     
+    console.log(`\n🔥 NEW TRANSACTION REQUEST:`);
+    console.log(`   Type: ${type}`);
+    console.log(`   Amount: $${amount}`);
+    console.log(`   Description: ${description}`);
+    console.log(`   Category: ${category}`);
+    
     // Create transaction (using first user for demo)
     const firstUser = await User.findOne();
     if (!firstUser) {
@@ -301,20 +310,110 @@ app.post("/api/transactions", async (req, res) => {
       type,
       amount: parseFloat(amount),
       description,
-      category
+      category,
+      date: new Date()
     });
     
     await transaction.save();
     
-    console.log(`💰 New ${type}: $${amount} - ${description}`);
+    console.log(`✅ TRANSACTION SAVED TO DATABASE!`);
+    console.log(`   ID: ${transaction._id}`);
+    console.log(`   User: ${firstUser.name}`);
+    console.log(`═`.repeat(50));
     
     res.json({
       success: true,
       message: 'Transaction added successfully',
-      transaction
+      transaction: {
+        _id: transaction._id,
+        type: transaction.type,
+        amount: transaction.amount,
+        description: transaction.description,
+        category: transaction.category,
+        date: transaction.date,
+        userId: transaction.userId
+      }
     });
   } catch (error) {
-    console.error('Add transaction error:', error.message);
+    console.error('❌ ADD TRANSACTION ERROR:', error.message);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// LIVE TRANSACTION MONITOR
+app.get("/api/admin/live-transactions", async (req, res) => {
+  try {
+    const transactions = await Transaction.find()
+      .populate("userId", "name email")
+      .sort({ createdAt: -1 })
+      .limit(10);
+    
+    console.log(`\n📊 LIVE TRANSACTION CHECK - Found ${transactions.length} recent transactions`);
+    
+    res.json({
+      success: true,
+      count: transactions.length,
+      transactions: transactions,
+      lastUpdated: new Date().toLocaleString()
+    });
+  } catch (error) {
+    console.error('Live transactions error:', error.message);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// CLEAR OLD DATA AND RESET
+app.get("/api/admin/clear-old-data", async (req, res) => {
+  try {
+    // Delete old sample data
+    await Transaction.deleteMany({ description: "Sample Coffee" });
+    await User.deleteMany({ email: "john@example.com" });
+    
+    console.log(`\n🗑️ OLD SAMPLE DATA CLEARED`);
+    
+    const remainingUsers = await User.find().select("-password");
+    const remainingTransactions = await Transaction.find().populate("userId", "name email");
+    
+    console.log(`✅ Current Users: ${remainingUsers.length}`);
+    console.log(`✅ Current Transactions: ${remainingTransactions.length}`);
+    
+    res.json({
+      success: true,
+      message: "Old data cleared successfully!",
+      currentUsers: remainingUsers.length,
+      currentTransactions: remainingTransactions.length,
+      users: remainingUsers,
+      transactions: remainingTransactions
+    });
+  } catch (error) {
+    console.error('Clear data error:', error.message);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// GET ONLY TODAY'S TRANSACTIONS
+app.get("/api/admin/today-transactions", async (req, res) => {
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const todayTransactions = await Transaction.find({
+      createdAt: { $gte: today }
+    }).populate("userId", "name email").sort({ createdAt: -1 });
+    
+    console.log(`\n📅 TODAY'S TRANSACTIONS: ${todayTransactions.length}`);
+    todayTransactions.forEach((t, i) => {
+      console.log(`${i+1}. ${t.type}: $${t.amount} - ${t.description || t.category} by ${t.userId?.name}`);
+    });
+    
+    res.json({
+      success: true,
+      count: todayTransactions.length,
+      date: today.toDateString(),
+      transactions: todayTransactions
+    });
+  } catch (error) {
+    console.error('Today transactions error:', error.message);
     res.status(500).json({ message: error.message });
   }
 });
