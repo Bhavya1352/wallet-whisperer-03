@@ -94,7 +94,7 @@ const Navbar = () => {
                 <Button variant="ghost" size="sm" onClick={() => setShowNotifications(true)} className="p-2 relative">
                   <Bell className="h-5 w-5" />
                   <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                    5
+                    3
                   </span>
                 </Button>
                 <Button variant="ghost" size="sm" onClick={handleLogout}>

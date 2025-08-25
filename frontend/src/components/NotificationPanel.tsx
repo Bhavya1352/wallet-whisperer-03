@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Bell, AlertTriangle, TrendingUp, Target, Calendar, Brain, DollarSign } from 'lucide-react';
+import { Bell, AlertTriangle, TrendingUp, Target, DollarSign } from 'lucide-react';
 
 interface NotificationPanelProps {
   isOpen: boolean;
@@ -10,146 +10,112 @@ interface NotificationPanelProps {
 
 const NotificationPanel = ({ isOpen, onClose }: NotificationPanelProps) => {
   const [notifications, setNotifications] = useState([]);
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
-      generateSmartNotifications();
+      generateNotifications();
     }
   }, [isOpen]);
 
-  const generateSmartNotifications = async () => {
-    setLoading(true);
-    try {
-      // Fetch user's financial data
-      const [insightsRes, transactionsRes] = await Promise.all([
-        fetch('http://localhost:3001/api/insights/weekly'),
-        fetch('http://localhost:3001/api/transactions')
-      ]);
-      
-      const insights = await insightsRes.json();
-      const transactions = await transactionsRes.json();
-      
-      const smartNotifications = [];
-      let notificationId = 1;
-      
-      // Smart spending alert
-      if (insights.success && insights.insights.weeklySpending > 300) {
+  const generateNotifications = () => {
+    const transactions = JSON.parse(localStorage.getItem('allTransactions') || '[]');
+    const budgets = JSON.parse(localStorage.getItem('budgets') || '[]');
+    const goals = JSON.parse(localStorage.getItem('goals') || '[]');
+    
+    const smartNotifications = [];
+    let id = 1;
+
+    // Welcome message if no data
+    if (transactions.length === 0) {
+      smartNotifications.push({
+        id: id++,
+        title: '👋 Welcome to Wallet Whisperer',
+        message: 'Start adding transactions to get personalized insights!',
+        time: 'Just now',
+        icon: Bell,
+        color: 'text-blue-600',
+        bgColor: 'bg-blue-100'
+      });
+    }
+
+    // Recent transaction notifications
+    if (transactions.length > 0) {
+      const recentTransaction = transactions[transactions.length - 1];
+      smartNotifications.push({
+        id: id++,
+        title: recentTransaction.type === 'income' ? '💰 Income Added' : '💸 Expense Added',
+        message: `${recentTransaction.description}: ${recentTransaction.type === 'income' ? '+' : '-'}$${recentTransaction.amount}`,
+        time: '1 hour ago',
+        icon: DollarSign,
+        color: recentTransaction.type === 'income' ? 'text-green-600' : 'text-red-600',
+        bgColor: recentTransaction.type === 'income' ? 'bg-green-100' : 'bg-red-100'
+      });
+    }
+
+    // Budget notifications
+    if (budgets.length > 0) {
+      smartNotifications.push({
+        id: id++,
+        title: '📊 Budget Set',
+        message: `${budgets[budgets.length - 1].category} budget: $${budgets[budgets.length - 1].amount}`,
+        time: '2 hours ago',
+        icon: Target,
+        color: 'text-yellow-600',
+        bgColor: 'bg-yellow-100'
+      });
+    }
+
+    // Goals notifications
+    if (goals.length > 0) {
+      smartNotifications.push({
+        id: id++,
+        title: '🎯 Goal Created',
+        message: `${goals[goals.length - 1].title}: $${goals[goals.length - 1].targetAmount} target`,
+        time: '3 hours ago',
+        icon: Target,
+        color: 'text-purple-600',
+        bgColor: 'bg-purple-100'
+      });
+    }
+
+    // Spending insights
+    const expenses = transactions.filter(t => t.type === 'expense');
+    if (expenses.length > 0) {
+      const totalExpenses = expenses.reduce((sum, t) => sum + t.amount, 0);
+      if (totalExpenses > 500) {
         smartNotifications.push({
-          id: notificationId++,
-          type: 'spending_alert',
+          id: id++,
           title: '⚠️ High Spending Alert',
-          message: `You've spent $${insights.insights.weeklySpending} this week. Consider reviewing your expenses.`,
-          time: 'Just now',
+          message: `Total expenses: $${totalExpenses.toFixed(2)}. Consider reviewing your spending.`,
+          time: '1 day ago',
           icon: AlertTriangle,
           color: 'text-red-600',
           bgColor: 'bg-red-100'
         });
       }
-      
-      // Savings rate notification
-      if (insights.success) {
-        const savingsRate = parseFloat(insights.insights.savingsRate);
-        if (savingsRate > 20) {
-          smartNotifications.push({
-            id: notificationId++,
-            type: 'savings_good',
-            title: '🎉 Great Savings Rate!',
-            message: `Your savings rate is ${insights.insights.savingsRate}. You're doing excellent!`,
-            time: '1 hour ago',
-            icon: TrendingUp,
-            color: 'text-green-600',
-            bgColor: 'bg-green-100'
-          });
-        } else if (savingsRate < 10) {
-          smartNotifications.push({
-            id: notificationId++,
-            type: 'savings_low',
-            title: '💡 Improve Your Savings',
-            message: `Your savings rate is ${insights.insights.savingsRate}. Try to save at least 20% of income.`,
-            time: '2 hours ago',
-            icon: Target,
-            color: 'text-yellow-600',
-            bgColor: 'bg-yellow-100'
-          });
-        }
-      }
-      
-      // Recent transaction notifications
-      if (transactions.success && transactions.transactions.length > 0) {
-        const recentTransaction = transactions.transactions[0];
-        if (recentTransaction.type === 'income') {
-          smartNotifications.push({
-            id: notificationId++,
-            type: 'income_added',
-            title: '💰 Income Added',
-            message: `${recentTransaction.description}: +$${recentTransaction.amount}`,
-            time: '1 day ago',
-            icon: DollarSign,
-            color: 'text-green-600',
-            bgColor: 'bg-green-100'
-          });
-        }
-        
-        // Check for high expense
-        const highExpenses = transactions.transactions.filter(t => 
-          t.type === 'expense' && t.amount > 100
-        );
-        
-        if (highExpenses.length > 0) {
-          smartNotifications.push({
-            id: notificationId++,
-            type: 'high_expense',
-            title: '📊 Large Expense Detected',
-            message: `${highExpenses[0].description}: -$${highExpenses[0].amount}`,
-            time: '2 days ago',
-            icon: AlertTriangle,
-            color: 'text-orange-600',
-            bgColor: 'bg-orange-100'
-          });
-        }
-      }
-      
-      // AI Insights notification
-      smartNotifications.push({
-        id: notificationId++,
-        type: 'ai_insight',
-        title: '🧠 AI Insight Available',
-        message: 'New financial insights are ready. Click Smart Insights to view analysis.',
-        time: '3 hours ago',
-        icon: Brain,
-        color: 'text-purple-600',
-        bgColor: 'bg-purple-100'
-      });
-      
-      // Monthly review reminder
-      smartNotifications.push({
-        id: notificationId++,
-        type: 'monthly_review',
-        title: '📅 Monthly Review Time',
-        message: 'Review your spending patterns and set goals for next month.',
-        time: '1 week ago',
-        icon: Calendar,
-        color: 'text-blue-600',
-        bgColor: 'bg-blue-100'
-      });
-      
-      setNotifications(smartNotifications);
-    } catch (error) {
-      console.error('Error generating notifications:', error);
-      // Fallback to welcome message
-      setNotifications([{
-        id: 1,
-        type: 'welcome',
-        title: '👋 Welcome to Wallet Whisperer',
-        message: 'Start adding transactions to get personalized insights and notifications.',
-        time: 'Just now',
-        icon: Bell,
-        color: 'text-blue-600',
-        bgColor: 'bg-blue-100'
-      }]);
     }
-    setLoading(false);
+
+    // Savings encouragement
+    const income = transactions.filter(t => t.type === 'income');
+    if (income.length > 0 && expenses.length > 0) {
+      const totalIncome = income.reduce((sum, t) => sum + t.amount, 0);
+      const totalExpenses = expenses.reduce((sum, t) => sum + t.amount, 0);
+      const savingsRate = ((totalIncome - totalExpenses) / totalIncome) * 100;
+      
+      if (savingsRate > 20) {
+        smartNotifications.push({
+          id: id++,
+          title: '🎉 Great Savings Rate!',
+          message: `You're saving ${savingsRate.toFixed(1)}% of your income. Keep it up!`,
+          time: '2 days ago',
+          icon: TrendingUp,
+          color: 'text-green-600',
+          bgColor: 'bg-green-100'
+        });
+      }
+    }
+
+    setNotifications(smartNotifications);
   };
 
   const markAsRead = (id: number) => {
@@ -178,12 +144,7 @@ const NotificationPanel = ({ isOpen, onClose }: NotificationPanelProps) => {
         </DialogHeader>
         
         <div className="space-y-3">
-          {loading ? (
-            <div className="text-center py-8">
-              <Brain className="h-12 w-12 mx-auto text-purple-500 mb-4 animate-pulse" />
-              <p className="text-muted-foreground">Generating smart notifications...</p>
-            </div>
-          ) : notifications.length === 0 ? (
+          {notifications.length === 0 ? (
             <div className="text-center py-8">
               <Bell className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
               <p className="text-muted-foreground">No new notifications</p>
