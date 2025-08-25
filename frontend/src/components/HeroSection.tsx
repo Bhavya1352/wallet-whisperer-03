@@ -17,8 +17,11 @@ const HeroSection = () => {
       if (dashboardElement) {
         dashboardElement.scrollIntoView({ behavior: 'smooth' });
       } else {
-        // If dashboard not found, scroll down to show it
+        // If dashboard not found, scroll down and refresh
         window.scrollTo({ top: window.innerHeight, behavior: 'smooth' });
+        setTimeout(() => {
+          window.location.reload();
+        }, 500);
       }
     } else {
       // User not logged in, show alert to login first

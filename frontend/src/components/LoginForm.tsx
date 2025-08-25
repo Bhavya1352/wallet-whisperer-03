@@ -38,6 +38,11 @@ const LoginForm = ({ isOpen, onClose, onSuccess }: LoginFormProps) => {
     
     onSuccess();
     onClose();
+    
+    // Refresh page to show dashboard
+    setTimeout(() => {
+      window.location.reload();
+    }, 100);
   };
 
   return (
