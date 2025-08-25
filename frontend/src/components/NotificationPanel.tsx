@@ -23,8 +23,8 @@ const NotificationPanel = ({ isOpen, onClose }: NotificationPanelProps) => {
     try {
       // Fetch user's financial data
       const [insightsRes, transactionsRes] = await Promise.all([
-        fetch('http://localhost:5000/api/insights/weekly'),
-        fetch('http://localhost:5000/api/transactions')
+        fetch('http://localhost:3001/api/insights/weekly'),
+        fetch('http://localhost:3001/api/transactions')
       ]);
       
       const insights = await insightsRes.json();

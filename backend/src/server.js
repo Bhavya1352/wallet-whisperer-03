@@ -248,16 +248,10 @@ mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/wallet-whis
   .then(() => {
     console.log("✅ MongoDB Connected");
     console.log("🌐 Admin URLs:");
-    console.log("   Users: http://localhost:5000/api/admin/users");
-    console.log("   Transactions: http://localhost:5000/api/admin/transactions");
-    console.log("   Create Sample: http://localhost:5000/api/admin/create-sample (GET)");
-    console.log("   Clear Old Data: http://localhost:5000/api/admin/clear-old-data");
-    console.log("   Today's Entries: http://localhost:5000/api/admin/today-transactions");
-    console.log("   Live Monitor: http://localhost:5000/api/admin/live-transactions");
-    console.log("\n🧠 SMART FEATURES:");
-    console.log("   Expense Analyzer: http://localhost:5000/api/smart/analyze/USER_ID");
-    console.log("   Weekly Insights: http://localhost:5000/api/insights/weekly");
-    console.log("   Spending Predictor: http://localhost:5000/api/predict/next-month");
+    console.log("   Expense Analyzer: http://localhost:3001/api/smart/analyze/USER_ID");
+    console.log("   Weekly Insights: http://localhost:3001/api/insights/weekly");
+    console.log("   Spending Predictor: http://localhost:3001/api/predict/next-month");
+
   })
   .catch((err) => console.error("❌ MongoDB Error:", err));
 
@@ -418,13 +412,253 @@ app.get("/api/admin/today-transactions", async (req, res) => {
   }
 });
 
+// BUDGET SCHEMA AND ROUTES
+const budgetSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  category: { type: String, required: true },
+  amount: { type: Number, required: true },
+  period: { type: String, enum: ["weekly", "monthly", "yearly"], default: "monthly" },
+  createdAt: { type: Date, default: Date.now }
+});
+
+const Budget = mongoose.model("Budget", budgetSchema);
+
+// GOAL SCHEMA AND ROUTES
+const goalSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  title: { type: String, required: true },
+  targetAmount: { type: Number, required: true },
+  currentAmount: { type: Number, default: 0 },
+  deadline: { type: Date, required: true },
+  category: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now }
+});
+
+const Goal = mongoose.model("Goal", goalSchema);
+
+// AUTHENTICATION ROUTES
+app.post("/api/auth/register", async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+    
+    console.log(`\n👤 NEW USER REGISTRATION:`);
+    console.log(`   Name: ${name}`);
+    console.log(`   Email: ${email}`);
+    
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: 'User already exists with this email' });
+    }
+    
+    // Create new user
+    const user = new User({
+      name,
+      email,
+      password // In production, hash this password
+    });
+    
+    await user.save();
+    
+    console.log(`✅ USER REGISTERED SUCCESSFULLY!`);
+    console.log(`   ID: ${user._id}`);
+    console.log(`   Name: ${user.name}`);
+    console.log(`═`.repeat(50));
+    
+    res.json({
+      success: true,
+      message: 'User registered successfully',
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email
+      },
+      token: 'demo-token-' + user._id
+    });
+  } catch (error) {
+    console.error('❌ REGISTRATION ERROR:', error.message);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+app.post("/api/auth/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    
+    console.log(`\n🔑 USER LOGIN ATTEMPT:`);
+    console.log(`   Email: ${email}`);
+    
+    // Find user
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ message: 'User not found' });
+    }
+    
+    // In production, compare hashed password
+    if (user.password !== password) {
+      return res.status(400).json({ message: 'Invalid password' });
+    }
+    
+    console.log(`✅ USER LOGGED IN SUCCESSFULLY!`);
+    console.log(`   ID: ${user._id}`);
+    console.log(`   Name: ${user.name}`);
+    console.log(`═`.repeat(50));
+    
+    res.json({
+      success: true,
+      message: 'Login successful',
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email
+      },
+      token: 'demo-token-' + user._id
+    });
+  } catch (error) {
+    console.error('❌ LOGIN ERROR:', error.message);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// GET BUDGETS
+app.get("/api/budgets", async (req, res) => {
+  try {
+    const budgets = await Budget.find().populate("userId", "name email");
+    
+    console.log(`💰 Found ${budgets.length} budgets`);
+    
+    res.json({
+      success: true,
+      budgets: budgets
+    });
+  } catch (error) {
+    console.error('Get budgets error:', error.message);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// ADD BUDGET
+app.post("/api/budgets", async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ message: 'No token provided' });
+    }
+    
+    const { category, amount, period } = req.body;
+    
+    console.log(`\n💰 NEW BUDGET REQUEST:`);
+    console.log(`   Category: ${category}`);
+    console.log(`   Amount: $${amount}`);
+    console.log(`   Period: ${period}`);
+    
+    // Use first user for demo
+    const firstUser = await User.findOne();
+    if (!firstUser) {
+      return res.status(400).json({ message: 'No users found. Create sample data first.' });
+    }
+    
+    const budget = new Budget({
+      userId: firstUser._id,
+      category,
+      amount: parseFloat(amount),
+      period
+    });
+    
+    await budget.save();
+    
+    console.log(`✅ BUDGET SAVED TO DATABASE!`);
+    console.log(`   ID: ${budget._id}`);
+    console.log(`   User: ${firstUser.name}`);
+    console.log(`═`.repeat(50));
+    
+    res.json({
+      success: true,
+      message: 'Budget added successfully',
+      budget: budget
+    });
+  } catch (error) {
+    console.error('❌ ADD BUDGET ERROR:', error.message);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// GET GOALS
+app.get("/api/goals", async (req, res) => {
+  try {
+    const goals = await Goal.find().populate("userId", "name email");
+    
+    console.log(`🎯 Found ${goals.length} goals`);
+    
+    res.json({
+      success: true,
+      goals: goals
+    });
+  } catch (error) {
+    console.error('Get goals error:', error.message);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// ADD GOAL
+app.post("/api/goals", async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ message: 'No token provided' });
+    }
+    
+    const { title, targetAmount, deadline, category } = req.body;
+    
+    console.log(`\n🎯 NEW GOAL REQUEST:`);
+    console.log(`   Title: ${title}`);
+    console.log(`   Target: $${targetAmount}`);
+    console.log(`   Deadline: ${deadline}`);
+    console.log(`   Category: ${category}`);
+    
+    // Use first user for demo
+    const firstUser = await User.findOne();
+    if (!firstUser) {
+      return res.status(400).json({ message: 'No users found. Create sample data first.' });
+    }
+    
+    const goal = new Goal({
+      userId: firstUser._id,
+      title,
+      targetAmount: parseFloat(targetAmount),
+      deadline: new Date(deadline),
+      category
+    });
+    
+    await goal.save();
+    
+    console.log(`✅ GOAL SAVED TO DATABASE!`);
+    console.log(`   ID: ${goal._id}`);
+    console.log(`   User: ${firstUser.name}`);
+    console.log(`═`.repeat(50));
+    
+    res.json({
+      success: true,
+      message: 'Goal added successfully',
+      goal: goal
+    });
+  } catch (error) {
+    console.error('❌ ADD GOAL ERROR:', error.message);
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // Start server
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`🌐 API URL: http://localhost:${PORT}`);
   console.log(`📊 Users: http://localhost:${PORT}/api/admin/users`);
   console.log(`💰 Transactions: http://localhost:${PORT}/api/admin/transactions`);
+  console.log(`💰 Budgets: http://localhost:${PORT}/api/budgets`);
+  console.log(`🎯 Goals: http://localhost:${PORT}/api/goals`);
+  console.log(`🔑 Auth: http://localhost:${PORT}/api/auth/register (POST)`);
+  console.log(`🔑 Login: http://localhost:${PORT}/api/auth/login (POST)`);
   console.log(`🎯 Create Sample: http://localhost:${PORT}/api/admin/create-sample`);
   console.log("👀 Models registered - Ready to track entries!");
 });

@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { api } from '@/api';
 
 interface BudgetFormProps {
   isOpen: boolean;
@@ -22,30 +23,38 @@ const BudgetForm = ({ isOpen, onClose }: BudgetFormProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-
-    const token = localStorage.getItem('token');
-    if (!token) {
-      alert('Please login first');
-      setLoading(false);
+    
+    if (!formData.category || !formData.amount) {
+      alert('Please fill all fields');
       return;
     }
 
-    // Mock budget storage
-    const existingBudgets = JSON.parse(localStorage.getItem('budgets') || '[]');
-    const newBudget = {
-      ...formData,
-      amount: parseFloat(formData.amount),
-      id: Date.now(),
-      userId: JSON.parse(localStorage.getItem('user') || '{}').id
-    };
-    existingBudgets.push(newBudget);
-    localStorage.setItem('budgets', JSON.stringify(existingBudgets));
+    setLoading(true);
     
-    alert('Budget set successfully!');
-    setFormData({ category: '', amount: '', period: 'monthly' });
-    setLoading(false);
-    onClose();
+    try {
+      const token = localStorage.getItem('token') || 'demo-token';
+      const result = await api.addBudget(token, {
+        category: formData.category,
+        amount: parseFloat(formData.amount),
+        period: formData.period
+      });
+      
+      if (result.success) {
+        alert('Budget set successfully!');
+        setFormData({ category: '', amount: '', period: 'monthly' });
+        onClose();
+        
+        // Refresh page to show new data
+        window.location.reload();
+      } else {
+        alert(result.message || 'Error setting budget');
+      }
+    } catch (error) {
+      console.error('Error setting budget:', error);
+      alert('Error setting budget. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

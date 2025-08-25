@@ -170,7 +170,7 @@ const Dashboard = () => {
                   </div>
                   <FeatureShowcase />
                 </div>
-              </div>
+              )}
 
               {!showSmartInsights && !showFeatureShowcase && <TransactionList />}
             </div>

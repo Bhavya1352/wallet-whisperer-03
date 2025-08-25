@@ -16,8 +16,8 @@ const SmartInsights: React.FC<SmartInsightsProps> = ({ userId }) => {
     setLoading(true);
     try {
       const [insightsRes, predictionRes] = await Promise.all([
-        fetch('http://localhost:5000/api/insights/weekly'),
-        fetch('http://localhost:5000/api/predict/next-month')
+        fetch('http://localhost:3001/api/insights/weekly'),
+        fetch('http://localhost:3001/api/predict/next-month')
       ]);
       
       const insightsData = await insightsRes.json();
@@ -152,7 +152,7 @@ const SmartInsights: React.FC<SmartInsightsProps> = ({ userId }) => {
             </p>
           </div>
         </CardContent>
-      </div>
+      </Card>
 
       {/* Quick Actions */}
       <Card>

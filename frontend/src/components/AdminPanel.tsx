@@ -11,23 +11,54 @@ interface AdminPanelProps {
 const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
   const [users, setUsers] = useState([]);
   const [transactions, setTransactions] = useState([]);
+  const [budgets, setBudgets] = useState([]);
+  const [goals, setGoals] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
-      const allUsers = JSON.parse(localStorage.getItem('allUsers') || '[]');
-      const allTransactions = JSON.parse(localStorage.getItem('allTransactions') || '[]');
-      setUsers(allUsers);
-      setTransactions(allTransactions);
+      fetchAllData();
     }
   }, [isOpen]);
 
-  const clearAllData = () => {
-    if (confirm('Are you sure you want to clear all data?')) {
-      localStorage.removeItem('allUsers');
-      localStorage.removeItem('allTransactions');
-      setUsers([]);
-      setTransactions([]);
-      alert('All data cleared!');
+  const fetchAllData = async () => {
+    setLoading(true);
+    try {
+      const [usersRes, transactionsRes, budgetsRes, goalsRes] = await Promise.all([
+        fetch('http://localhost:3001/api/admin/users'),
+        fetch('http://localhost:3001/api/admin/transactions'),
+        fetch('http://localhost:3001/api/budgets'),
+        fetch('http://localhost:3001/api/goals')
+      ]);
+      
+      const usersData = await usersRes.json();
+      const transactionsData = await transactionsRes.json();
+      const budgetsData = await budgetsRes.json();
+      const goalsData = await goalsRes.json();
+      
+      if (usersData.success) setUsers(usersData.users);
+      if (transactionsData.success) setTransactions(transactionsData.transactions);
+      if (budgetsData.success) setBudgets(budgetsData.budgets);
+      if (goalsData.success) setGoals(goalsData.goals);
+    } catch (error) {
+      console.error('Error fetching admin data:', error);
+    }
+    setLoading(false);
+  };
+
+  const clearAllData = async () => {
+    if (confirm('Are you sure you want to clear old sample data?')) {
+      try {
+        const response = await fetch('http://localhost:3001/api/admin/clear-old-data');
+        const data = await response.json();
+        if (data.success) {
+          alert('Old sample data cleared!');
+          fetchAllData(); // Refresh data
+        }
+      } catch (error) {
+        console.error('Error clearing data:', error);
+        alert('Error clearing data');
+      }
     }
   };
 
@@ -39,20 +70,29 @@ const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
         </DialogHeader>
         
         <Tabs defaultValue="users" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="users">Users ({users.length})</TabsTrigger>
             <TabsTrigger value="transactions">Transactions ({transactions.length})</TabsTrigger>
+            <TabsTrigger value="budgets">Budgets ({budgets.length})</TabsTrigger>
+            <TabsTrigger value="goals">Goals ({goals.length})</TabsTrigger>
           </TabsList>
           
           <TabsContent value="users" className="space-y-4">
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-semibold">All Registered Users</h3>
-              <Button variant="destructive" size="sm" onClick={clearAllData}>
-                Clear All Data
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={fetchAllData}>
+                  Refresh Data
+                </Button>
+                <Button variant="destructive" size="sm" onClick={clearAllData}>
+                  Clear Sample Data
+                </Button>
+              </div>
             </div>
             
-            {users.length === 0 ? (
+            {loading ? (
+              <p>Loading users...</p>
+            ) : users.length === 0 ? (
               <p className="text-muted-foreground">No users registered yet.</p>
             ) : (
               <div className="space-y-2">
@@ -60,7 +100,8 @@ const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
                   <div key={index} className="p-3 border rounded-lg">
                     <div className="font-medium">{user.name}</div>
                     <div className="text-sm text-muted-foreground">{user.email}</div>
-                    <div className="text-xs text-muted-foreground">ID: {user.id}</div>
+                    <div className="text-xs text-muted-foreground">ID: {user._id}</div>
+                    <div className="text-xs text-muted-foreground">Created: {new Date(user.createdAt).toLocaleDateString()}</div>
                   </div>
                 ))}
               </div>
@@ -70,7 +111,9 @@ const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
           <TabsContent value="transactions" className="space-y-4">
             <h3 className="text-lg font-semibold">All Transactions</h3>
             
-            {transactions.length === 0 ? (
+            {loading ? (
+              <p>Loading transactions...</p>
+            ) : transactions.length === 0 ? (
               <p className="text-muted-foreground">No transactions recorded yet.</p>
             ) : (
               <div className="space-y-2">
@@ -78,7 +121,9 @@ const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
                   <div key={index} className="p-3 border rounded-lg">
                     <div className="flex justify-between items-start">
                       <div>
-                        <div className="font-medium">
+                        <div className={`font-medium ${
+                          transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
+                        }`}>
                           {transaction.type === 'income' ? '+' : '-'}${transaction.amount}
                         </div>
                         <div className="text-sm">{transaction.description}</div>
@@ -87,9 +132,68 @@ const AdminPanel = ({ isOpen, onClose }: AdminPanelProps) => {
                         </div>
                       </div>
                       <div className="text-right text-xs text-muted-foreground">
-                        <div>By: {transaction.userName}</div>
-                        <div>{transaction.userEmail}</div>
+                        <div>By: {transaction.userId?.name || 'Unknown'}</div>
+                        <div>{transaction.userId?.email || 'No email'}</div>
                         <div>{new Date(transaction.date).toLocaleDateString()}</div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+          
+          <TabsContent value="budgets" className="space-y-4">
+            <h3 className="text-lg font-semibold">All Budgets</h3>
+            
+            {loading ? (
+              <p>Loading budgets...</p>
+            ) : budgets.length === 0 ? (
+              <p className="text-muted-foreground">No budgets set yet.</p>
+            ) : (
+              <div className="space-y-2">
+                {budgets.map((budget, index) => (
+                  <div key={index} className="p-3 border rounded-lg">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <div className="font-medium">{budget.category}</div>
+                        <div className="text-sm text-blue-600">${budget.amount} / {budget.period}</div>
+                      </div>
+                      <div className="text-right text-xs text-muted-foreground">
+                        <div>By: {budget.userId?.name || 'Unknown'}</div>
+                        <div>{new Date(budget.createdAt).toLocaleDateString()}</div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+          
+          <TabsContent value="goals" className="space-y-4">
+            <h3 className="text-lg font-semibold">All Goals</h3>
+            
+            {loading ? (
+              <p>Loading goals...</p>
+            ) : goals.length === 0 ? (
+              <p className="text-muted-foreground">No goals created yet.</p>
+            ) : (
+              <div className="space-y-2">
+                {goals.map((goal, index) => (
+                  <div key={index} className="p-3 border rounded-lg">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <div className="font-medium">{goal.title}</div>
+                        <div className="text-sm text-purple-600">
+                          ${goal.currentAmount} / ${goal.targetAmount}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          Category: {goal.category}
+                        </div>
+                      </div>
+                      <div className="text-right text-xs text-muted-foreground">
+                        <div>By: {goal.userId?.name || 'Unknown'}</div>
+                        <div>Deadline: {new Date(goal.deadline).toLocaleDateString()}</div>
                       </div>
                     </div>
                   </div>

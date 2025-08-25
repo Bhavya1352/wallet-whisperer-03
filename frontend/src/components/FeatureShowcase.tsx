@@ -218,28 +218,28 @@ const FeatureShowcase = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             <Button 
               variant="outline" 
-              onClick={() => window.open('http://localhost:5000/api/admin/users', '_blank')}
+              onClick={() => window.open('http://localhost:3001/api/admin/users', '_blank')}
               className="justify-start"
             >
               👥 View All Users
             </Button>
             <Button 
               variant="outline" 
-              onClick={() => window.open('http://localhost:5000/api/admin/transactions', '_blank')}
+              onClick={() => window.open('http://localhost:3001/api/admin/transactions', '_blank')}
               className="justify-start"
             >
               💰 View All Transactions
             </Button>
             <Button 
               variant="outline" 
-              onClick={() => window.open('http://localhost:5000/api/insights/weekly', '_blank')}
+              onClick={() => window.open('http://localhost:3001/api/insights/weekly', '_blank')}
               className="justify-start"
             >
               🧠 Weekly Insights API
             </Button>
             <Button 
               variant="outline" 
-              onClick={() => window.open('http://localhost:5000/api/predict/next-month', '_blank')}
+              onClick={() => window.open('http://localhost:3001/api/predict/next-month', '_blank')}
               className="justify-start"
             >
               🔮 Predictions API

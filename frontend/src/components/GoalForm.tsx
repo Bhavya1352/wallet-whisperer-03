@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { api } from '@/api';
 
 interface GoalFormProps {
   isOpen: boolean;
@@ -20,31 +21,39 @@ const GoalForm = ({ isOpen, onClose }: GoalFormProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-
-    const token = localStorage.getItem('token');
-    if (!token) {
-      alert('Please login first');
-      setLoading(false);
+    
+    if (!formData.title || !formData.targetAmount || !formData.deadline) {
+      alert('Please fill all fields');
       return;
     }
 
-    // Mock goal storage
-    const existingGoals = JSON.parse(localStorage.getItem('goals') || '[]');
-    const newGoal = {
-      ...formData,
-      targetAmount: parseFloat(formData.targetAmount),
-      currentAmount: 0,
-      id: Date.now(),
-      userId: JSON.parse(localStorage.getItem('user') || '{}').id
-    };
-    existingGoals.push(newGoal);
-    localStorage.setItem('goals', JSON.stringify(existingGoals));
+    setLoading(true);
     
-    alert('Goal created successfully!');
-    setFormData({ title: '', targetAmount: '', deadline: '', category: 'Savings' });
-    setLoading(false);
-    onClose();
+    try {
+      const token = localStorage.getItem('token') || 'demo-token';
+      const result = await api.addGoal(token, {
+        title: formData.title,
+        targetAmount: parseFloat(formData.targetAmount),
+        deadline: formData.deadline,
+        category: formData.category
+      });
+      
+      if (result.success) {
+        alert('Goal created successfully!');
+        setFormData({ title: '', targetAmount: '', deadline: '', category: 'Savings' });
+        onClose();
+        
+        // Refresh page to show new data
+        window.location.reload();
+      } else {
+        alert(result.message || 'Error creating goal');
+      }
+    } catch (error) {
+      console.error('Error creating goal:', error);
+      alert('Error creating goal. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

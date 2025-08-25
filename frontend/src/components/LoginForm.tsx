@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { api } from '@/api';
 
 interface LoginFormProps {
   isOpen: boolean;
@@ -12,32 +13,64 @@ interface LoginFormProps {
 
 const LoginForm = ({ isOpen, onClose, onSuccess }: LoginFormProps) => {
   const [isLogin, setIsLogin] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Simple demo authentication
-    const userData = {
-      name: formData.name || 'Demo User',
-      email: formData.email,
-      id: Date.now()
-    };
+    if (!formData.email || !formData.password) {
+      alert('Please fill all required fields');
+      return;
+    }
     
-    localStorage.setItem('token', 'demo-token-' + Date.now());
-    localStorage.setItem('user', JSON.stringify(userData));
+    if (!isLogin && !formData.name) {
+      alert('Please enter your name');
+      return;
+    }
+
+    setLoading(true);
     
-    // Store user data for admin view
-    const users = JSON.parse(localStorage.getItem('allUsers') || '[]');
-    users.push(userData);
-    localStorage.setItem('allUsers', JSON.stringify(users));
-    
-    onSuccess();
-    onClose();
+    try {
+      let result;
+      
+      if (isLogin) {
+        // Login
+        result = await api.login({
+          email: formData.email,
+          password: formData.password
+        });
+      } else {
+        // Register
+        result = await api.register({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password
+        });
+      }
+      
+      if (result.success) {
+        // Save to localStorage
+        localStorage.setItem('token', result.token);
+        localStorage.setItem('user', JSON.stringify(result.user));
+        
+        alert(isLogin ? 'Login successful!' : 'Registration successful!');
+        setFormData({ name: '', email: '', password: '' });
+        onSuccess();
+        onClose();
+      } else {
+        alert(result.message || 'Authentication failed');
+      }
+    } catch (error) {
+      console.error('Auth error:', error);
+      alert('Network error. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -86,8 +119,8 @@ const LoginForm = ({ isOpen, onClose, onSuccess }: LoginFormProps) => {
           </div>
 
           <div className="flex flex-col gap-2">
-            <Button type="submit" className="w-full">
-              {isLogin ? 'Login' : 'Sign Up'}
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? (isLogin ? 'Logging in...' : 'Signing up...') : (isLogin ? 'Login' : 'Sign Up')}
             </Button>
             
             <Button 
