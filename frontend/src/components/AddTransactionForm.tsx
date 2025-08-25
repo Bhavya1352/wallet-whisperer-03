@@ -4,7 +4,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { api } from '@/api';
 
 interface AddTransactionFormProps {
   isOpen: boolean;
@@ -18,13 +17,12 @@ const AddTransactionForm = ({ isOpen, onClose, type }: AddTransactionFormProps) 
     description: '',
     category: '',
   });
-  const [loading, setLoading] = useState(false);
 
   const categories = type === 'expense' 
     ? ['Food', 'Transport', 'Housing', 'Entertainment', 'Healthcare', 'Shopping', 'Other']
     : ['Salary', 'Freelance', 'Investment', 'Business', 'Other'];
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!formData.amount || !formData.description || !formData.category) {
@@ -32,36 +30,27 @@ const AddTransactionForm = ({ isOpen, onClose, type }: AddTransactionFormProps) 
       return;
     }
 
-    setLoading(true);
-    
-    const transactionData = {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const transaction = {
+      id: Date.now(),
+      type,
       amount: parseFloat(formData.amount),
       description: formData.description,
       category: formData.category,
-      type
+      date: new Date().toISOString(),
+      userId: user.id,
+      userName: user.name,
+      userEmail: user.email
     };
 
-    try {
-      // Save to database via API
-      const token = localStorage.getItem('token') || 'demo-token';
-      const result = await api.addTransaction(token, transactionData);
-      
-      if (result.success) {
-        alert(`${type === 'income' ? 'Income' : 'Expense'} added successfully!`);
-        setFormData({ amount: '', description: '', category: '' });
-        onClose();
-        
-        // Refresh page to show new data
-        window.location.reload();
-      } else {
-        alert(result.message || 'Error adding transaction');
-      }
-    } catch (error) {
-      console.error('Error adding transaction:', error);
-      alert('Error adding transaction. Please try again.');
-    } finally {
-      setLoading(false);
-    }
+    // Save to localStorage
+    const transactions = JSON.parse(localStorage.getItem('allTransactions') || '[]');
+    transactions.push(transaction);
+    localStorage.setItem('allTransactions', JSON.stringify(transactions));
+
+    alert(`${type === 'income' ? 'Income' : 'Expense'} added successfully!`);
+    setFormData({ amount: '', description: '', category: '' });
+    onClose();
   };
 
   return (
@@ -113,10 +102,10 @@ const AddTransactionForm = ({ isOpen, onClose, type }: AddTransactionFormProps) 
           </div>
 
           <div className="flex gap-2">
-            <Button type="submit" className="flex-1" disabled={loading}>
-              {loading ? 'Adding...' : `Add ${type === 'income' ? 'Income' : 'Expense'}`}
+            <Button type="submit" className="flex-1">
+              Add {type === 'income' ? 'Income' : 'Expense'}
             </Button>
-            <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
+            <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>
           </div>
