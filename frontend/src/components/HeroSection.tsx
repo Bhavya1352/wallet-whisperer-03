@@ -1,53 +1,28 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, TrendingUp, Shield, Zap } from "lucide-react";
-import financeHero from "@/assets/finance-hero.jpg";
-import financeBg from "@/assets/finance-bg.jpg";
-import { useNavigate } from "react-router-dom";
 
 const HeroSection = () => {
-  const navigate = useNavigate();
-
   const handleGetStarted = () => {
-    // Check if user is logged in
     const user = localStorage.getItem('user');
     
     if (user) {
-      // User is logged in, scroll to dashboard
       const dashboardElement = document.getElementById('dashboard');
       if (dashboardElement) {
         dashboardElement.scrollIntoView({ behavior: 'smooth' });
       } else {
-        // If dashboard not found, scroll down and refresh
         window.scrollTo({ top: window.innerHeight, behavior: 'smooth' });
-        setTimeout(() => {
-          window.location.reload();
-        }, 500);
       }
     } else {
-      // User not logged in, show alert to login first
       alert('🔒 Please login first to access the dashboard!\n\nClick the Login button in the navbar to get started.');
     }
   };
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Background */}
-      <div 
-        className="absolute inset-0 opacity-10"
-        style={{
-          backgroundImage: `url(${financeBg})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          filter: 'blur(100px)',
-        }}
-      />
-      
-      {/* Gradient Overlay */}
       <div className="absolute inset-0 bg-gradient-to-br from-background via-background/95 to-primary/10" />
       
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
-          {/* Text Content */}
           <div className="space-y-8">
             <div className="space-y-4">
               <div className="inline-flex items-center px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
@@ -66,7 +41,6 @@ const HeroSection = () => {
               </p>
             </div>
 
-            {/* Features */}
             <div className="grid grid-cols-2 gap-4">
               <div className="flex items-center space-x-3">
                 <TrendingUp className="h-5 w-5 text-success" />
@@ -78,7 +52,6 @@ const HeroSection = () => {
               </div>
             </div>
 
-            {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4">
               <Button className="btn-hero group" onClick={handleGetStarted}>
                 Get Started Now
@@ -95,17 +68,17 @@ const HeroSection = () => {
             </div>
           </div>
 
-          {/* Hero Image */}
           <div className="relative lg:ml-8">
             <div className="relative z-10 animate-float">
-              <img
-                src={financeHero}
-                alt="Financial Dashboard"
-                className="w-full rounded-2xl shadow-2xl finance-card"
-              />
+              <div className="w-full h-96 rounded-2xl shadow-2xl finance-card bg-gradient-to-br from-primary/10 to-success/10 flex items-center justify-center">
+                <div className="text-center">
+                  <div className="text-6xl mb-4">💰</div>
+                  <h3 className="text-2xl font-bold mb-2">Your Finance Dashboard</h3>
+                  <p className="text-muted-foreground">Track, Analyze, Grow</p>
+                </div>
+              </div>
             </div>
             
-            {/* Floating Elements */}
             <div className="absolute -top-6 -right-6 p-4 bg-success/20 backdrop-blur-xl border border-success/30 rounded-xl animate-float" style={{ animationDelay: '1s' }}>
               <div className="text-center">
                 <p className="text-2xl font-bold text-success">$0</p>
