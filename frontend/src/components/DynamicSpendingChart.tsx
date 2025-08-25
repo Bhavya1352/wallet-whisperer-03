@@ -16,7 +16,12 @@ const DynamicSpendingChart = () => {
     };
     
     window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    window.addEventListener('refreshStats', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('refreshStats', handleStorageChange);
+    };
   }, []);
 
   const fetchChartData = () => {

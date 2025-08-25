@@ -47,8 +47,9 @@ const GoalForm = ({ isOpen, onClose }: GoalFormProps) => {
     goals.push(goal);
     localStorage.setItem('allGoals', JSON.stringify(goals));
 
-    // Trigger storage event for real-time updates
+    // Trigger events for real-time updates
     window.dispatchEvent(new Event('storage'));
+    window.dispatchEvent(new Event('refreshStats'));
 
     setFormData({ title: '', targetAmount: '', deadline: '', category: '' });
     onClose();

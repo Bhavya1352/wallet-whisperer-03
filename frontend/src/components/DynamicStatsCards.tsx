@@ -20,7 +20,14 @@ const DynamicStatsCards = () => {
     };
     
     window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    
+    // Also listen for custom refresh events
+    window.addEventListener('refreshStats', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('refreshStats', handleStorageChange);
+    };
   }, []);
 
   const fetchStats = () => {

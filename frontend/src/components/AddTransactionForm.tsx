@@ -49,8 +49,9 @@ const AddTransactionForm = ({ isOpen, onClose, onTransactionAdded, type }: AddTr
     transactions.push(transaction);
     localStorage.setItem('allTransactions', JSON.stringify(transactions));
 
-    // Trigger storage event for real-time updates
+    // Trigger multiple events for real-time updates
     window.dispatchEvent(new Event('storage'));
+    window.dispatchEvent(new Event('refreshStats'));
 
     setFormData({ amount: '', description: '', category: '' });
     if (onTransactionAdded) onTransactionAdded();

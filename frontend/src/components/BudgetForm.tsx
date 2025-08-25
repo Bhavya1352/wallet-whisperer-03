@@ -44,8 +44,9 @@ const BudgetForm = ({ isOpen, onClose }: BudgetFormProps) => {
     budgets.push(budget);
     localStorage.setItem('allBudgets', JSON.stringify(budgets));
 
-    // Trigger storage event for real-time updates
+    // Trigger events for real-time updates
     window.dispatchEvent(new Event('storage'));
+    window.dispatchEvent(new Event('refreshStats'));
 
     setFormData({ category: '', amount: '', period: 'monthly' });
     onClose();
