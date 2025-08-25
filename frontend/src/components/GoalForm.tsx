@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { api } from '@/api';
 
 interface GoalFormProps {
   isOpen: boolean;
@@ -17,43 +16,35 @@ const GoalForm = ({ isOpen, onClose }: GoalFormProps) => {
     deadline: '',
     category: 'Savings',
   });
-  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.title || !formData.targetAmount || !formData.deadline) {
-      alert('Please fill all fields');
+    if (!formData.title || !formData.targetAmount) {
+      alert('Please fill title and target amount');
       return;
     }
 
-    setLoading(true);
-    
-    try {
-      const token = localStorage.getItem('token') || 'demo-token';
-      const result = await api.addGoal(token, {
-        title: formData.title,
-        targetAmount: parseFloat(formData.targetAmount),
-        deadline: formData.deadline,
-        category: formData.category
-      });
-      
-      if (result.success) {
-        alert('Goal created successfully!');
-        setFormData({ title: '', targetAmount: '', deadline: '', category: 'Savings' });
-        onClose();
-        
-        // Refresh page to show new data
-        window.location.reload();
-      } else {
-        alert(result.message || 'Error creating goal');
-      }
-    } catch (error) {
-      console.error('Error creating goal:', error);
-      alert('Error creating goal. Please try again.');
-    } finally {
-      setLoading(false);
-    }
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const goal = {
+      id: Date.now(),
+      title: formData.title,
+      targetAmount: parseFloat(formData.targetAmount),
+      currentAmount: 0,
+      deadline: formData.deadline,
+      category: formData.category,
+      userId: user.id,
+      createdAt: new Date().toISOString()
+    };
+
+    // Save to localStorage
+    const goals = JSON.parse(localStorage.getItem('goals') || '[]');
+    goals.push(goal);
+    localStorage.setItem('goals', JSON.stringify(goals));
+
+    alert('Goal created successfully!');
+    setFormData({ title: '', targetAmount: '', deadline: '', category: 'Savings' });
+    onClose();
   };
 
   return (
@@ -89,13 +80,12 @@ const GoalForm = ({ isOpen, onClose }: GoalFormProps) => {
           </div>
 
           <div>
-            <Label htmlFor="deadline">Target Date</Label>
+            <Label htmlFor="deadline">Target Date (Optional)</Label>
             <Input
               id="deadline"
               type="date"
               value={formData.deadline}
               onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
-              required
             />
           </div>
 
@@ -110,8 +100,8 @@ const GoalForm = ({ isOpen, onClose }: GoalFormProps) => {
           </div>
 
           <div className="flex gap-2">
-            <Button type="submit" disabled={loading} className="flex-1">
-              {loading ? 'Creating...' : 'Create Goal'}
+            <Button type="submit" className="flex-1">
+              Create Goal
             </Button>
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel
