@@ -4,7 +4,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { api } from '@/api';
 
 interface BudgetFormProps {
   isOpen: boolean;
@@ -17,11 +16,10 @@ const BudgetForm = ({ isOpen, onClose }: BudgetFormProps) => {
     amount: '',
     period: 'monthly',
   });
-  const [loading, setLoading] = useState(false);
 
   const categories = ['Food', 'Transport', 'Housing', 'Entertainment', 'Healthcare', 'Shopping', 'Other'];
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.category || !formData.amount) {
@@ -29,32 +27,24 @@ const BudgetForm = ({ isOpen, onClose }: BudgetFormProps) => {
       return;
     }
 
-    setLoading(true);
-    
-    try {
-      const token = localStorage.getItem('token') || 'demo-token';
-      const result = await api.addBudget(token, {
-        category: formData.category,
-        amount: parseFloat(formData.amount),
-        period: formData.period
-      });
-      
-      if (result.success) {
-        alert('Budget set successfully!');
-        setFormData({ category: '', amount: '', period: 'monthly' });
-        onClose();
-        
-        // Refresh page to show new data
-        window.location.reload();
-      } else {
-        alert(result.message || 'Error setting budget');
-      }
-    } catch (error) {
-      console.error('Error setting budget:', error);
-      alert('Error setting budget. Please try again.');
-    } finally {
-      setLoading(false);
-    }
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const budget = {
+      id: Date.now(),
+      category: formData.category,
+      amount: parseFloat(formData.amount),
+      period: formData.period,
+      userId: user.id,
+      createdAt: new Date().toISOString()
+    };
+
+    // Save to localStorage
+    const budgets = JSON.parse(localStorage.getItem('budgets') || '[]');
+    budgets.push(budget);
+    localStorage.setItem('budgets', JSON.stringify(budgets));
+
+    alert('Budget set successfully!');
+    setFormData({ category: '', amount: '', period: 'monthly' });
+    onClose();
   };
 
   return (
@@ -109,8 +99,8 @@ const BudgetForm = ({ isOpen, onClose }: BudgetFormProps) => {
           </div>
 
           <div className="flex gap-2">
-            <Button type="submit" disabled={loading} className="flex-1">
-              {loading ? 'Setting...' : 'Set Budget'}
+            <Button type="submit" className="flex-1">
+              Set Budget
             </Button>
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel
