@@ -8,6 +8,7 @@ import GoalForm from "./GoalForm";
 import GoalsView from "./GoalsView";
 import SmartInsights from "./SmartInsights";
 import FeatureShowcase from "./FeatureShowcase";
+import BudgetQuickView from "./BudgetQuickView";
 import { useState, useEffect } from "react";
 
 const Dashboard = () => {
@@ -31,8 +32,19 @@ const Dashboard = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20 py-8">
         <div className="max-w-7xl mx-auto px-4 text-center">
-          <h2 className="text-4xl font-bold gradient-text mb-4">Welcome to Wallet Whisperer</h2>
-          <p className="text-xl text-muted-foreground">Please login to access your dashboard</p>
+          <div className="bg-red-50 border border-red-200 rounded-lg p-8 max-w-md mx-auto">
+            <div className="text-red-600 text-6xl mb-4">🔒</div>
+            <h2 className="text-2xl font-bold text-red-800 mb-4">Access Denied</h2>
+            <p className="text-red-700 mb-6">You must be logged in to access the dashboard</p>
+            <div className="space-y-3">
+              <p className="text-sm text-red-600">Please:</p>
+              <ul className="text-sm text-red-600 space-y-1">
+                <li>• Click Login button in navbar</li>
+                <li>• Register if you don't have account</li>
+                <li>• Enter valid credentials</li>
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -172,7 +184,25 @@ const Dashboard = () => {
                 </div>
               )}
 
-              {!showSmartInsights && !showFeatureShowcase && <TransactionList />}
+              {!showSmartInsights && !showFeatureShowcase && (
+                <>
+                  <TransactionList />
+                  
+                  {/* Quick Budget View */}
+                  <div className="finance-card p-6">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-xl font-semibold">Recent Budgets</h3>
+                      <button 
+                        onClick={() => setShowBudgetForm(true)}
+                        className="text-sm text-primary hover:text-primary-light transition-colors"
+                      >
+                        View All
+                      </button>
+                    </div>
+                    <BudgetQuickView />
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>

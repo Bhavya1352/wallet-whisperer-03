@@ -10,10 +10,31 @@ const Transactions = () => {
   const [loading, setLoading] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [formType, setFormType] = useState<'income' | 'expense'>('expense');
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
-    fetchTransactions();
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      setUser(JSON.parse(userData));
+      fetchTransactions();
+    }
   }, []);
+
+  // Authentication check
+  if (!user) {
+    return (
+      <div className="min-h-screen">
+        <Navbar />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-8 max-w-md mx-auto text-center">
+            <div className="text-red-600 text-6xl mb-4">🔒</div>
+            <h2 className="text-2xl font-bold text-red-800 mb-4">Login Required</h2>
+            <p className="text-red-700">Please login to view transactions</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const fetchTransactions = async () => {
     try {

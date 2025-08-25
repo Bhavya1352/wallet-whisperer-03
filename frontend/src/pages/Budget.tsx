@@ -8,10 +8,31 @@ const Budget = () => {
   const [budgets, setBudgets] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showBudgetForm, setShowBudgetForm] = useState(false);
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
-    fetchBudgets();
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      setUser(JSON.parse(userData));
+      fetchBudgets();
+    }
   }, []);
+
+  // Authentication check
+  if (!user) {
+    return (
+      <div className="min-h-screen">
+        <Navbar />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-8 max-w-md mx-auto text-center">
+            <div className="text-red-600 text-6xl mb-4">🔒</div>
+            <h2 className="text-2xl font-bold text-red-800 mb-4">Login Required</h2>
+            <p className="text-red-700">Please login to manage budgets</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const fetchBudgets = async () => {
     try {
@@ -19,13 +40,33 @@ const Budget = () => {
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      const response = await fetch('http://localhost:3001/api/budgets', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      // Fetch both budgets and transactions to calculate spent amounts
+      const [budgetsRes, transactionsRes] = await Promise.all([
+        fetch('http://localhost:3001/api/budgets', {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch('http://localhost:3001/api/admin/transactions')
+      ]);
       
-      const data = await response.json();
-      if (data.success) {
-        setBudgets(data.budgets);
+      const budgetsData = await budgetsRes.json();
+      const transactionsData = await transactionsRes.json();
+      
+      if (budgetsData.success) {
+        // Calculate spent amount for each budget
+        const budgetsWithSpent = budgetsData.budgets.map(budget => {
+          const categoryTransactions = transactionsData.transactions?.filter(t => 
+            t.type === 'expense' && t.category === budget.category
+          ) || [];
+          
+          const spent = categoryTransactions.reduce((sum, t) => sum + t.amount, 0);
+          
+          return {
+            ...budget,
+            spent: spent
+          };
+        });
+        
+        setBudgets(budgetsWithSpent);
       }
     } catch (error) {
       console.error('Error fetching budgets:', error);
@@ -71,8 +112,9 @@ const Budget = () => {
               </div>
             ) : (
               budgets.map((budget: any) => {
-                const spentPercentage = getSpentPercentage(budget.spent, budget.amount);
-                const remaining = budget.amount - budget.spent;
+                const spent = budget.spent || 0;
+                const spentPercentage = getSpentPercentage(spent, budget.amount);
+                const remaining = budget.amount - spent;
                 
                 return (
                   <div key={budget._id} className="finance-card p-6 space-y-4">
@@ -92,7 +134,7 @@ const Budget = () => {
                     
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
-                        <span>${budget.spent.toFixed(2)} spent</span>
+                        <span>${spent.toFixed(2)} spent</span>
                         <span>${budget.amount.toFixed(2)} budget</span>
                       </div>
                       
@@ -130,7 +172,10 @@ const Budget = () => {
         isOpen={showBudgetForm} 
         onClose={() => {
           setShowBudgetForm(false);
-          fetchBudgets(); // Refresh after adding
+          // Small delay to ensure backend saves data
+          setTimeout(() => {
+            fetchBudgets(); // Refresh after adding
+          }, 500);
         }} 
       />
     </div>

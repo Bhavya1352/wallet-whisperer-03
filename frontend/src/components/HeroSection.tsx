@@ -21,18 +21,8 @@ const HeroSection = () => {
         window.scrollTo({ top: window.innerHeight, behavior: 'smooth' });
       }
     } else {
-      // User not logged in, create demo user and show dashboard
-      const demoUser = {
-        _id: 'demo-user-' + Date.now(),
-        name: 'Demo User',
-        email: 'demo@walletwhisperer.com'
-      };
-      
-      localStorage.setItem('user', JSON.stringify(demoUser));
-      localStorage.setItem('token', 'demo-token-' + Date.now());
-      
-      // Refresh page to show dashboard with demo user
-      window.location.reload();
+      // User not logged in, show alert to login first
+      alert('🔒 Please login first to access the dashboard!\n\nClick the Login button in the navbar to get started.');
     }
   };
 
