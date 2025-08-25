@@ -6,7 +6,7 @@ import AddTransactionForm from "./AddTransactionForm";
 import BudgetForm from "./BudgetForm";
 import GoalForm from "./GoalForm";
 import GoalsView from "./GoalsView";
-
+import ClearDataButton from "./ClearDataButton";
 import { useState, useEffect } from "react";
 
 const Dashboard = () => {
@@ -41,8 +41,13 @@ const Dashboard = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="space-y-8">
           <div className="text-center space-y-4">
-            <h2 className="text-4xl font-bold gradient-text">Financial Dashboard</h2>
-            <p className="text-xl text-muted-foreground">Welcome back, {user.name}!</p>
+            <div className="flex justify-between items-center">
+              <div className="flex-1">
+                <h2 className="text-4xl font-bold gradient-text">Financial Dashboard</h2>
+                <p className="text-xl text-muted-foreground">Welcome back, {user.name}!</p>
+              </div>
+              <ClearDataButton />
+            </div>
           </div>
 
           <DynamicStatsCards />
