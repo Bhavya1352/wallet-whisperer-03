@@ -9,6 +9,7 @@ import GoalsView from "./GoalsView";
 import SmartInsights from "./SmartInsights";
 import FeatureShowcase from "./FeatureShowcase";
 import BudgetQuickView from "./BudgetQuickView";
+import RealStatsCards from "./RealStatsCards";
 import { useState, useEffect } from "react";
 
 const Dashboard = () => {
@@ -59,40 +60,7 @@ const Dashboard = () => {
             <p className="text-xl text-muted-foreground">Welcome back, {user.name}!</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <StatsCard
-              title="Total Balance"
-              amount="$24,580.00"
-              change="+12.5% from last month"
-              changeType="positive"
-              icon={Wallet}
-              variant="success"
-            />
-            <StatsCard
-              title="Monthly Income"
-              amount="$8,450.00"
-              change="+8.2% from last month"
-              changeType="positive"
-              icon={TrendingUp}
-              variant="success"
-            />
-            <StatsCard
-              title="Monthly Expenses"
-              amount="$3,250.00"
-              change="-5.1% from last month"
-              changeType="negative"
-              icon={TrendingDown}
-              variant="warning"
-            />
-            <StatsCard
-              title="Savings Goal"
-              amount="$15,000.00"
-              change="78% completed"
-              changeType="positive"
-              icon={Target}
-              variant="primary"
-            />
-          </div>
+          <RealStatsCards />
 
           <div className="grid lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
