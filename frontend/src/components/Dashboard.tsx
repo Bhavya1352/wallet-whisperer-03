@@ -6,6 +6,7 @@ import AddTransactionForm from "./AddTransactionForm";
 import BudgetForm from "./BudgetForm";
 import GoalForm from "./GoalForm";
 import GoalsView from "./GoalsView";
+
 import { useState, useEffect } from "react";
 
 const Dashboard = () => {
@@ -14,6 +15,7 @@ const Dashboard = () => {
   const [showBudgetForm, setShowBudgetForm] = useState(false);
   const [showGoalForm, setShowGoalForm] = useState(false);
   const [showGoalsView, setShowGoalsView] = useState(false);
+
   const [user, setUser] = useState(null);
 
   useEffect(() => {
@@ -83,6 +85,9 @@ const Dashboard = () => {
                     <p className="text-sm font-medium">View Goals</p>
                   </button>
                 </div>
+                
+
+                </div>
               </div>
 
               <TransactionList />
@@ -119,6 +124,7 @@ const Dashboard = () => {
         isOpen={showGoalsView} 
         onClose={() => setShowGoalsView(false)} 
       />
+
     </div>
   );
 };
