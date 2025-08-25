@@ -5,9 +5,20 @@ const TransactionList = () => {
   const [transactions, setTransactions] = useState([]);
 
   useEffect(() => {
-    // Get transactions from localStorage
-    const storedTransactions = JSON.parse(localStorage.getItem('allTransactions') || '[]');
-    setTransactions(storedTransactions.slice(0, 5)); // Show only last 5
+    const loadTransactions = () => {
+      const storedTransactions = JSON.parse(localStorage.getItem('allTransactions') || '[]');
+      setTransactions(storedTransactions.slice(-5).reverse()); // Show last 5, newest first
+    };
+    
+    loadTransactions();
+    
+    // Listen for storage changes
+    const handleStorageChange = () => {
+      loadTransactions();
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   return (
@@ -22,8 +33,10 @@ const TransactionList = () => {
       <div className="space-y-4">
         {transactions.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
-            <p className="text-lg mb-2">No transactions yet</p>
-            <p className="text-sm">Add your first transaction to get started!</p>
+            <div className="text-4xl mb-3">💳</div>
+            <p className="text-lg mb-2 font-medium">No transactions yet</p>
+            <p className="text-sm">Add your first income or expense to get started!</p>
+            <p className="text-xs mt-2 text-gray-400">Use the Quick Actions buttons above</p>
           </div>
         ) : (
           transactions.map((transaction) => {
