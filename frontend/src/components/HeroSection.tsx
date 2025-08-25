@@ -105,15 +105,15 @@ const HeroSection = () => {
             {/* Floating Elements */}
             <div className="absolute -top-6 -right-6 p-4 bg-success/20 backdrop-blur-xl border border-success/30 rounded-xl animate-float" style={{ animationDelay: '1s' }}>
               <div className="text-center">
-                <p className="text-2xl font-bold text-success">+15%</p>
-                <p className="text-xs text-success-foreground">Monthly Growth</p>
+                <p className="text-2xl font-bold text-success">$0</p>
+                <p className="text-xs text-success-foreground">Start Tracking</p>
               </div>
             </div>
             
             <div className="absolute -bottom-6 -left-6 p-4 bg-primary/20 backdrop-blur-xl border border-primary/30 rounded-xl animate-float" style={{ animationDelay: '2s' }}>
               <div className="text-center">
-                <p className="text-2xl font-bold text-primary">$12.5K</p>
-                <p className="text-xs text-primary-foreground">Total Saved</p>
+                <p className="text-2xl font-bold text-primary">$0</p>
+                <p className="text-xs text-primary-foreground">Your Goal</p>
               </div>
             </div>
           </div>
