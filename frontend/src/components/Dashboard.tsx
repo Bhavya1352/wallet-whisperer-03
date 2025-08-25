@@ -1,7 +1,5 @@
 import { Wallet, TrendingUp, TrendingDown, PiggyBank, CreditCard, Target } from "lucide-react";
-import DynamicStatsCards from "./DynamicStatsCards";
-import TransactionList from "./TransactionList";
-import DynamicSpendingChart from "./DynamicSpendingChart";
+import SmartDashboard from "./SmartDashboard";
 import AddTransactionForm from "./AddTransactionForm";
 import BudgetForm from "./BudgetForm";
 import GoalForm from "./GoalForm";
@@ -50,51 +48,41 @@ const Dashboard = () => {
             </div>
           </div>
 
-          <DynamicStatsCards />
-
-          <div className="grid lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2">
-              <DynamicSpendingChart />
-            </div>
-
-            <div className="space-y-6">
-              <div className="finance-card p-6">
-                <h3 className="text-xl font-semibold mb-4">Quick Actions</h3>
-                <div className="grid grid-cols-2 gap-3">
-                  <button 
-                    onClick={() => setShowExpenseForm(true)}
-                    className="p-4 rounded-xl border border-border/50 hover:border-primary/50 transition-colors group"
-                  >
-                    <CreditCard className="h-6 w-6 text-primary mx-auto mb-2 group-hover:scale-110 transition-transform" />
-                    <p className="text-sm font-medium">Add Expense</p>
-                  </button>
-                  <button 
-                    onClick={() => setShowIncomeForm(true)}
-                    className="p-4 rounded-xl border border-border/50 hover:border-success/50 transition-colors group"
-                  >
-                    <TrendingUp className="h-6 w-6 text-success mx-auto mb-2 group-hover:scale-110 transition-transform" />
-                    <p className="text-sm font-medium">Add Income</p>
-                  </button>
-                  <button 
-                    onClick={() => setShowBudgetForm(true)}
-                    className="p-4 rounded-xl border border-border/50 hover:border-warning/50 transition-colors group"
-                  >
-                    <PiggyBank className="h-6 w-6 text-warning mx-auto mb-2 group-hover:scale-110 transition-transform" />
-                    <p className="text-sm font-medium">Set Budget</p>
-                  </button>
-                  <button 
-                    onClick={() => setShowGoalsView(true)}
-                    className="p-4 rounded-xl border border-border/50 hover:border-accent/50 transition-colors group"
-                  >
-                    <Target className="h-6 w-6 text-accent mx-auto mb-2 group-hover:scale-110 transition-transform" />
-                    <p className="text-sm font-medium">View Goals</p>
-                  </button>
-                </div>
-              </div>
-
-              <TransactionList />
+          <div className="finance-card p-6 max-w-4xl mx-auto">
+            <h3 className="text-xl font-semibold mb-4 text-center">Quick Actions</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <button 
+                onClick={() => setShowIncomeForm(true)}
+                className="p-4 rounded-xl border border-border/50 hover:border-success/50 transition-colors group"
+              >
+                <TrendingUp className="h-6 w-6 text-success mx-auto mb-2 group-hover:scale-110 transition-transform" />
+                <p className="text-sm font-medium">Add Income</p>
+              </button>
+              <button 
+                onClick={() => setShowExpenseForm(true)}
+                className="p-4 rounded-xl border border-border/50 hover:border-primary/50 transition-colors group"
+              >
+                <CreditCard className="h-6 w-6 text-primary mx-auto mb-2 group-hover:scale-110 transition-transform" />
+                <p className="text-sm font-medium">Add Expense</p>
+              </button>
+              <button 
+                onClick={() => setShowBudgetForm(true)}
+                className="p-4 rounded-xl border border-border/50 hover:border-warning/50 transition-colors group"
+              >
+                <PiggyBank className="h-6 w-6 text-warning mx-auto mb-2 group-hover:scale-110 transition-transform" />
+                <p className="text-sm font-medium">Set Budget</p>
+              </button>
+              <button 
+                onClick={() => setShowGoalForm(true)}
+                className="p-4 rounded-xl border border-border/50 hover:border-accent/50 transition-colors group"
+              >
+                <Target className="h-6 w-6 text-accent mx-auto mb-2 group-hover:scale-110 transition-transform" />
+                <p className="text-sm font-medium">Set Goal</p>
+              </button>
             </div>
           </div>
+
+          <SmartDashboard />
         </div>
       </div>
       
@@ -102,7 +90,8 @@ const Dashboard = () => {
         isOpen={showExpenseForm} 
         onClose={() => {
           setShowExpenseForm(false);
-          window.location.reload(); // Refresh to update charts
+          // Force refresh to update all components
+          setTimeout(() => window.location.reload(), 100);
         }} 
         type="expense" 
       />
@@ -110,17 +99,24 @@ const Dashboard = () => {
         isOpen={showIncomeForm} 
         onClose={() => {
           setShowIncomeForm(false);
-          window.location.reload(); // Refresh to update charts
+          // Force refresh to update all components
+          setTimeout(() => window.location.reload(), 100);
         }} 
         type="income" 
       />
       <BudgetForm 
         isOpen={showBudgetForm} 
-        onClose={() => setShowBudgetForm(false)} 
+        onClose={() => {
+          setShowBudgetForm(false);
+          setTimeout(() => window.location.reload(), 100);
+        }} 
       />
       <GoalForm 
         isOpen={showGoalForm} 
-        onClose={() => setShowGoalForm(false)} 
+        onClose={() => {
+          setShowGoalForm(false);
+          setTimeout(() => window.location.reload(), 100);
+        }} 
       />
       <GoalsView 
         isOpen={showGoalsView} 

@@ -4,11 +4,12 @@ import { Trash2 } from "lucide-react";
 const ClearDataButton = () => {
   const clearAllData = () => {
     if (confirm('Are you sure you want to clear all data? This will remove all transactions, goals, and budgets.')) {
+      // Keep user login but clear all other data
       localStorage.removeItem('allTransactions');
       localStorage.removeItem('goals');
       localStorage.removeItem('budgets');
-      localStorage.removeItem('allUsers');
-      alert('All data cleared! Refresh the page to see changes.');
+      // Don't remove 'token' and 'user' so user stays logged in
+      alert('All data cleared! You can now add fresh transactions.');
       window.location.reload();
     }
   };
