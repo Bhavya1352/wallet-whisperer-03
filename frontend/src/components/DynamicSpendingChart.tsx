@@ -13,23 +13,25 @@ const DynamicSpendingChart = () => {
     
     // Listen for storage changes to update chart in real-time
     const handleStorageChange = () => {
-      setLoading(true);
-      setTimeout(() => {
-        fetchChartData();
-      }, 100);
+      fetchChartData();
     };
     
     window.addEventListener('storage', handleStorageChange);
     window.addEventListener('refreshStats', handleStorageChange);
     
+    // Listen for transaction events specifically
+    window.addEventListener('transactionAdded', handleStorageChange);
+    
     return () => {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('refreshStats', handleStorageChange);
+      window.removeEventListener('transactionAdded', handleStorageChange);
     };
   }, []);
 
   const fetchChartData = () => {
     try {
+      setLoading(true);
       const transactions = JSON.parse(localStorage.getItem('allTransactions') || '[]');
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       
@@ -41,25 +43,35 @@ const DynamicSpendingChart = () => {
       userTransactions
         .filter(t => t.type === 'expense')
         .forEach(t => {
-          expensesByCategory[t.category] = (expensesByCategory[t.category] || 0) + t.amount;
+          const category = t.category || 'Other';
+          expensesByCategory[category] = (expensesByCategory[category] || 0) + t.amount;
         });
       
-      const chartData = Object.entries(expensesByCategory).map(([category, amount]) => ({
-        name: category,
-        value: amount
-      }));
+      const newChartData = Object.entries(expensesByCategory)
+        .map(([category, amount]) => ({
+          name: category,
+          value: Number(amount)
+        }))
+        .sort((a, b) => b.value - a.value); // Sort by amount descending
       
-      setChartData(chartData);
-      setHasData(chartData.length > 0);
+      // Force update even if data looks same
+      setChartData([...newChartData]);
+      setHasData(newChartData.length > 0);
       setUpdateKey(prev => prev + 1);
+      
+      console.log('Chart updated with data:', newChartData);
     } catch (error) {
       console.log('Chart data fetch error:', error);
     } finally {
-      setLoading(false);
+      setTimeout(() => setLoading(false), 100);
     }
   };
 
-  const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#8dd1e1', '#d084d0'];
+  const COLORS = [
+    '#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#8dd1e1', '#d084d0',
+    '#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57', '#ff9ff3',
+    '#54a0ff', '#5f27cd', '#00d2d3', '#ff9f43', '#10ac84', '#ee5a24'
+  ];
 
   if (loading) {
     return (
@@ -90,28 +102,30 @@ const DynamicSpendingChart = () => {
       </CardHeader>
       <CardContent>
         {hasData ? (
-          <ResponsiveContainer width="100%" height={300} key={updateKey}>
-            <PieChart>
-              <Pie
-                data={chartData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="value"
-                animationBegin={0}
-                animationDuration={800}
-              >
-                {chartData.map((entry, index) => (
-                  <Cell key={`cell-${entry.name}-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip formatter={(value) => [`$${value.toFixed(2)}`, 'Amount']} />
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
+          <div key={updateKey}>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={chartData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                  animationBegin={0}
+                  animationDuration={500}
+                >
+                  {chartData.map((entry, index) => (
+                    <Cell key={`${entry.name}-${entry.value}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip formatter={(value) => [`$${value.toFixed(2)}`, 'Amount']} />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
         ) : (
           <div className="h-64 flex flex-col items-center justify-center text-center space-y-4">
             <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">

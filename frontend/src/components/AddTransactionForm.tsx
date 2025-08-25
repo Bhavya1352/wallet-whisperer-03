@@ -52,6 +52,7 @@ const AddTransactionForm = ({ isOpen, onClose, onTransactionAdded, type }: AddTr
     // Trigger multiple events for real-time updates
     window.dispatchEvent(new Event('storage'));
     window.dispatchEvent(new Event('refreshStats'));
+    window.dispatchEvent(new Event('transactionAdded'));
 
     setFormData({ amount: '', description: '', category: '' });
     if (onTransactionAdded) onTransactionAdded();
