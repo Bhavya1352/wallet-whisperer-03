@@ -16,7 +16,6 @@ const Dashboard = ({ user }) => {
   const [showIncomeForm, setShowIncomeForm] = useState(false);
   const [showBudgetForm, setShowBudgetForm] = useState(false);
   const [showGoalForm, setShowGoalForm] = useState(false);
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Redirect if no user
   if (!user) {
@@ -31,7 +30,7 @@ const Dashboard = ({ user }) => {
   }
 
   const handleTransactionAdded = () => {
-    setRefreshTrigger(prev => prev + 1);
+    // Components will auto-refresh via event listeners
   };
 
   // Listen for budget form open events
@@ -135,22 +134,22 @@ const Dashboard = ({ user }) => {
           </div>
 
           {/* Stats Cards */}
-          <DynamicStatsCards key={refreshTrigger} />
+          <DynamicStatsCards />
 
           {/* Charts and Data */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <DynamicSpendingChart key={refreshTrigger} />
-            <BudgetQuickView key={refreshTrigger} />
+            <DynamicSpendingChart />
+            <BudgetQuickView />
           </div>
 
           {/* Smart Insights */}
-          <SmartInsights key={refreshTrigger} />
+          <SmartInsights />
 
           {/* Recent Transactions */}
-          <TransactionList key={refreshTrigger} />
+          <TransactionList />
 
           {/* Goals Overview */}
-          <GoalsView key={refreshTrigger} />
+          <GoalsView />
         </div>
       </div>
       
