@@ -1,7 +1,7 @@
 import { Wallet, TrendingUp, TrendingDown, PiggyBank, CreditCard, Target } from "lucide-react";
-import StatsCard from "./StatsCard";
+import DynamicStatsCards from "./DynamicStatsCards";
 import TransactionList from "./TransactionList";
-import SpendingChart from "./SpendingChart";
+import DynamicSpendingChart from "./DynamicSpendingChart";
 import AddTransactionForm from "./AddTransactionForm";
 import BudgetForm from "./BudgetForm";
 import GoalForm from "./GoalForm";
@@ -43,44 +43,11 @@ const Dashboard = () => {
             <p className="text-xl text-muted-foreground">Welcome back, {user.name}!</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <StatsCard
-              title="Total Balance"
-              amount="$0.00"
-              change="Start adding transactions"
-              changeType="neutral"
-              icon={Wallet}
-              variant="success"
-            />
-            <StatsCard
-              title="Monthly Income"
-              amount="$0.00"
-              change="No income recorded"
-              changeType="neutral"
-              icon={TrendingUp}
-              variant="success"
-            />
-            <StatsCard
-              title="Monthly Expenses"
-              amount="$0.00"
-              change="No expenses recorded"
-              changeType="neutral"
-              icon={TrendingDown}
-              variant="warning"
-            />
-            <StatsCard
-              title="Savings Goal"
-              amount="$0.00"
-              change="Set your first goal"
-              changeType="neutral"
-              icon={Target}
-              variant="primary"
-            />
-          </div>
+          <DynamicStatsCards />
 
           <div className="grid lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
-              <SpendingChart />
+              <DynamicSpendingChart />
             </div>
 
             <div className="space-y-6">
@@ -126,12 +93,18 @@ const Dashboard = () => {
       
       <AddTransactionForm 
         isOpen={showExpenseForm} 
-        onClose={() => setShowExpenseForm(false)} 
+        onClose={() => {
+          setShowExpenseForm(false);
+          window.location.reload(); // Refresh to update charts
+        }} 
         type="expense" 
       />
       <AddTransactionForm 
         isOpen={showIncomeForm} 
-        onClose={() => setShowIncomeForm(false)} 
+        onClose={() => {
+          setShowIncomeForm(false);
+          window.location.reload(); // Refresh to update charts
+        }} 
         type="income" 
       />
       <BudgetForm 
