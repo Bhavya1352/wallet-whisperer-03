@@ -356,6 +356,37 @@ app.get("/api/admin/live-transactions", async (req, res) => {
   }
 });
 
+// COMPLETE DATABASE RESET
+app.get("/api/admin/reset-database", async (req, res) => {
+  try {
+    // Delete ALL data for fresh start
+    await Transaction.deleteMany({});
+    await Budget.deleteMany({});
+    await Goal.deleteMany({});
+    await User.deleteMany({});
+    
+    console.log(`\n🗑️ COMPLETE DATABASE RESET`);
+    console.log(`✅ All users deleted`);
+    console.log(`✅ All transactions deleted`);
+    console.log(`✅ All budgets deleted`);
+    console.log(`✅ All goals deleted`);
+    
+    res.json({
+      success: true,
+      message: "Database completely reset! Fresh start ready.",
+      deleted: {
+        users: "all",
+        transactions: "all",
+        budgets: "all",
+        goals: "all"
+      }
+    });
+  } catch (error) {
+    console.error('Database reset error:', error.message);
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // CLEAR ALL SAMPLE/DEMO DATA
 app.get("/api/admin/clear-all-sample-data", async (req, res) => {
   try {
@@ -686,6 +717,7 @@ app.listen(PORT, () => {
   console.log(`🔑 Auth: http://localhost:${PORT}/api/auth/register (POST)`);
   console.log(`🔑 Login: http://localhost:${PORT}/api/auth/login (POST)`);
   console.log(`🗑️ Clear Sample Data: http://localhost:${PORT}/api/admin/clear-all-sample-data`);
+  console.log(`🔄 Reset Database: http://localhost:${PORT}/api/admin/reset-database`);
   console.log(`🎯 Create Sample: http://localhost:${PORT}/api/admin/create-sample`);
   console.log("👀 Models registered - Ready to track entries!");
 });
