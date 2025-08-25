@@ -23,7 +23,11 @@ const BudgetQuickView = () => {
   const fetchBudgets = () => {
     try {
       const budgets = JSON.parse(localStorage.getItem('allBudgets') || '[]');
-      setBudgets(budgets);
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      
+      // Filter budgets for current user only
+      const userBudgets = budgets.filter(b => b.userId === user.id);
+      setBudgets(userBudgets);
     } catch (error) {
       console.log('Budget fetch error:', error);
     } finally {
@@ -70,10 +74,11 @@ const BudgetQuickView = () => {
         {budgets.length > 0 ? (
           <div className="space-y-4">
             {budgets.slice(0, 3).map((budget, index) => {
-              // Calculate spending for this category
+              // Calculate spending for this category (user-specific)
               const transactions = JSON.parse(localStorage.getItem('allTransactions') || '[]');
+              const user = JSON.parse(localStorage.getItem('user') || '{}');
               const categorySpending = transactions
-                .filter(t => t.type === 'expense' && t.category === budget.category)
+                .filter(t => t.type === 'expense' && t.category === budget.category && t.userId === user.id)
                 .reduce((sum, t) => sum + t.amount, 0);
               const progressPercentage = Math.min((categorySpending / budget.amount) * 100, 100);
               

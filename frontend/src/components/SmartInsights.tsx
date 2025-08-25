@@ -21,7 +21,11 @@ const SmartInsights = () => {
   const fetchInsights = () => {
     try {
       const transactions = JSON.parse(localStorage.getItem('allTransactions') || '[]');
-      const generatedInsights = generateInsights(transactions);
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      
+      // Filter transactions for current user only
+      const userTransactions = transactions.filter(t => t.userId === user.id);
+      const generatedInsights = generateInsights(userTransactions);
       setInsights(generatedInsights);
     } catch (error) {
       console.log('Insights fetch error:', error);

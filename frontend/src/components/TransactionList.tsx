@@ -7,7 +7,10 @@ const TransactionList = () => {
   useEffect(() => {
     const loadTransactions = () => {
       const storedTransactions = JSON.parse(localStorage.getItem('allTransactions') || '[]');
-      setTransactions(storedTransactions.slice(-5).reverse()); // Show last 5, newest first
+      // Only show user's own transactions
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const userTransactions = storedTransactions.filter(t => t.userId === user.id);
+      setTransactions(userTransactions.slice(-5).reverse()); // Show last 5, newest first
     };
     
     loadTransactions();

@@ -26,12 +26,16 @@ const DynamicStatsCards = () => {
   const fetchStats = () => {
     try {
       const transactions = JSON.parse(localStorage.getItem('allTransactions') || '[]');
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
       
-      const income = transactions
+      // Filter transactions for current user only
+      const userTransactions = transactions.filter(t => t.userId === user.id);
+      
+      const income = userTransactions
         .filter(t => t.type === 'income')
         .reduce((sum, t) => sum + t.amount, 0);
         
-      const expenses = transactions
+      const expenses = userTransactions
         .filter(t => t.type === 'expense')
         .reduce((sum, t) => sum + t.amount, 0);
         

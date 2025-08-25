@@ -22,10 +22,14 @@ const DynamicSpendingChart = () => {
   const fetchChartData = () => {
     try {
       const transactions = JSON.parse(localStorage.getItem('allTransactions') || '[]');
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      
+      // Filter transactions for current user only
+      const userTransactions = transactions.filter(t => t.userId === user.id);
       
       // Group expenses by category
       const expensesByCategory = {};
-      transactions
+      userTransactions
         .filter(t => t.type === 'expense')
         .forEach(t => {
           expensesByCategory[t.category] = (expensesByCategory[t.category] || 0) + t.amount;

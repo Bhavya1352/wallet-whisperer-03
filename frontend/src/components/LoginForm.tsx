@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Wallet } from "lucide-react";
 
 interface LoginFormProps {
   isOpen: boolean;
@@ -21,33 +22,72 @@ const LoginForm = ({ isOpen, onClose, onLogin }: LoginFormProps) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Simple demo authentication - no network calls
-    const userData = {
-      name: formData.name || 'Demo User',
-      email: formData.email,
-      id: Date.now()
-    };
-    
-    localStorage.setItem('token', 'demo-token-' + Date.now());
-    localStorage.setItem('user', JSON.stringify(userData));
-    
-    // Store user data for admin view
     const users = JSON.parse(localStorage.getItem('allUsers') || '[]');
-    users.push(userData);
-    localStorage.setItem('allUsers', JSON.stringify(users));
     
-    onLogin(userData);
+    if (isLogin) {
+      // Login Logic
+      const existingUser = users.find(u => u.email === formData.email);
+      if (!existingUser) {
+        alert('User not found! Please sign up first.');
+        return;
+      }
+      if (existingUser.password !== formData.password) {
+        alert('Invalid password!');
+        return;
+      }
+      
+      localStorage.setItem('token', 'demo-token-' + existingUser.id);
+      localStorage.setItem('user', JSON.stringify(existingUser));
+      onLogin(existingUser);
+    } else {
+      // Signup Logic
+      const existingUser = users.find(u => u.email === formData.email);
+      if (existingUser) {
+        alert('User already exists! Please login instead.');
+        return;
+      }
+      
+      if (!formData.name || !formData.email || !formData.password) {
+        alert('Please fill all fields!');
+        return;
+      }
+      
+      const userData = {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        id: Date.now(),
+        createdAt: new Date().toISOString()
+      };
+      
+      users.push(userData);
+      localStorage.setItem('allUsers', JSON.stringify(users));
+      localStorage.setItem('token', 'demo-token-' + userData.id);
+      localStorage.setItem('user', JSON.stringify(userData));
+      
+      onLogin(userData);
+    }
+    
+    setFormData({ name: '', email: '', password: '' });
     onClose();
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{isLogin ? 'Login' : 'Sign Up'}</DialogTitle>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader className="text-center">
+          <div className="mx-auto mb-4 p-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full w-fit">
+            <Wallet className="h-8 w-8 text-white" />
+          </div>
+          <DialogTitle className="text-2xl font-bold">
+            {isLogin ? '🔑 Welcome Back!' : '🎉 Join Wallet Whisperer'}
+          </DialogTitle>
+          <p className="text-muted-foreground">
+            {isLogin ? 'Login to access your dashboard' : 'Create your account to get started'}
+          </p>
         </DialogHeader>
         
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 mt-6">
           {!isLogin && (
             <div>
               <Label htmlFor="name">Name</Label>
@@ -85,19 +125,28 @@ const LoginForm = ({ isOpen, onClose, onLogin }: LoginFormProps) => {
             />
           </div>
 
-          <div className="flex flex-col gap-2">
-            <Button type="submit" className="w-full">
-              {isLogin ? 'Login' : 'Sign Up'}
+          <div className="flex flex-col gap-3 mt-6">
+            <Button 
+              type="submit" 
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+            >
+              {isLogin ? '🚀 Login Now' : '✨ Create Account'}
             </Button>
             
-            <Button 
-              type="button" 
-              variant="ghost" 
-              onClick={() => setIsLogin(!isLogin)}
-              className="w-full"
-            >
-              {isLogin ? "Don't have an account? Sign Up" : "Already have an account? Login"}
-            </Button>
+            <div className="text-center">
+              <Button 
+                type="button" 
+                variant="ghost" 
+                onClick={() => setIsLogin(!isLogin)}
+                className="text-sm text-muted-foreground hover:text-primary"
+              >
+                {isLogin ? "Don't have an account? Sign Up" : "Already have an account? Login"}
+              </Button>
+            </div>
+            
+            <div className="text-center text-xs text-muted-foreground mt-4">
+              🔒 Your data is secure and encrypted
+            </div>
           </div>
         </form>
       </DialogContent>

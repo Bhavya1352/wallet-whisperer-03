@@ -22,7 +22,11 @@ const GoalsView = () => {
   const fetchGoals = () => {
     try {
       const goals = JSON.parse(localStorage.getItem('allGoals') || '[]');
-      setGoals(goals);
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      
+      // Filter goals for current user only
+      const userGoals = goals.filter(g => g.userId === user.id);
+      setGoals(userGoals);
     } catch (error) {
       console.log('Goals fetch error:', error);
     } finally {
