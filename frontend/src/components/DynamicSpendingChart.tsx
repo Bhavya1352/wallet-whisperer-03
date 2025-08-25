@@ -6,13 +6,17 @@ const DynamicSpendingChart = () => {
   const [chartData, setChartData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [hasData, setHasData] = useState(false);
+  const [updateKey, setUpdateKey] = useState(0);
 
   useEffect(() => {
     fetchChartData();
     
     // Listen for storage changes to update chart in real-time
     const handleStorageChange = () => {
-      fetchChartData();
+      setLoading(true);
+      setTimeout(() => {
+        fetchChartData();
+      }, 100);
     };
     
     window.addEventListener('storage', handleStorageChange);
@@ -47,6 +51,7 @@ const DynamicSpendingChart = () => {
       
       setChartData(chartData);
       setHasData(chartData.length > 0);
+      setUpdateKey(prev => prev + 1);
     } catch (error) {
       console.log('Chart data fetch error:', error);
     } finally {
@@ -85,7 +90,7 @@ const DynamicSpendingChart = () => {
       </CardHeader>
       <CardContent>
         {hasData ? (
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={300} key={updateKey}>
             <PieChart>
               <Pie
                 data={chartData}
@@ -96,9 +101,11 @@ const DynamicSpendingChart = () => {
                 outerRadius={80}
                 fill="#8884d8"
                 dataKey="value"
+                animationBegin={0}
+                animationDuration={800}
               >
                 {chartData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  <Cell key={`cell-${entry.name}-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
               <Tooltip formatter={(value) => [`$${value.toFixed(2)}`, 'Amount']} />
