@@ -23,16 +23,7 @@ const Dashboard = () => {
     }
   }, []);
 
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20 py-8">
-        <div className="max-w-7xl mx-auto px-4 text-center">
-          <h2 className="text-4xl font-bold gradient-text mb-4">Welcome to Wallet Whisperer</h2>
-          <p className="text-xl text-muted-foreground">Please login to access your dashboard</p>
-        </div>
-      </div>
-    );
-  }
+  // Dashboard will only render if user is logged in (handled by Index page)
 
   return (
     <div id="dashboard" className="min-h-screen bg-gradient-to-br from-background to-secondary/20 py-8">
