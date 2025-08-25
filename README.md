@@ -47,7 +47,7 @@ MongoDB installed and running locally, or a connection string to a cloud-hosted 
 Step-by-Step
 Clone the repository:
 
-git clone https://github.com/your-username/wallet-whisperer.git
+git clone https://github.com/Bhavya1352/wallet-whisperer-03
 
 Navigate to the project directory:
 
