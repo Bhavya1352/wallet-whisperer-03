@@ -2,7 +2,7 @@
 A full-stack personal finance management application with AI-powered insights to help you understand and control your money.
 
 🚀 Live Demo
-
+https://wallet-whisperer-03.vercel.app/
  
 
 ✨ Smart Features
