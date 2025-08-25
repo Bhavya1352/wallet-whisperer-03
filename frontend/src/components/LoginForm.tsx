@@ -7,10 +7,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 interface LoginFormProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: () => void;
+  onLogin: (userData: any) => void;
 }
 
-const LoginForm = ({ isOpen, onClose, onSuccess }: LoginFormProps) => {
+const LoginForm = ({ isOpen, onClose, onLogin }: LoginFormProps) => {
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
     name: '',
@@ -36,13 +36,8 @@ const LoginForm = ({ isOpen, onClose, onSuccess }: LoginFormProps) => {
     users.push(userData);
     localStorage.setItem('allUsers', JSON.stringify(users));
     
-    onSuccess();
+    onLogin(userData);
     onClose();
-    
-    // Refresh page to show dashboard
-    setTimeout(() => {
-      window.location.reload();
-    }, 100);
   };
 
   return (

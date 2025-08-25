@@ -13,42 +13,39 @@ const DynamicStatsCards = () => {
 
   useEffect(() => {
     fetchStats();
+    
+    // Listen for storage changes to update stats in real-time
+    const handleStorageChange = () => {
+      fetchStats();
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
-  const fetchStats = async () => {
+  const fetchStats = () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3001/api/transactions', {
-        headers: {
-          'Authorization': `Bearer ${token || 'demo-token'}`
-        }
-      });
+      const transactions = JSON.parse(localStorage.getItem('allTransactions') || '[]');
       
-      if (response.ok) {
-        const data = await response.json();
-        const transactions = data.transactions || [];
+      const income = transactions
+        .filter(t => t.type === 'income')
+        .reduce((sum, t) => sum + t.amount, 0);
         
-        const income = transactions
-          .filter(t => t.type === 'income')
-          .reduce((sum, t) => sum + t.amount, 0);
-          
-        const expenses = transactions
-          .filter(t => t.type === 'expense')
-          .reduce((sum, t) => sum + t.amount, 0);
-          
-        const balance = income - expenses;
-        const savings = balance > 0 ? balance : 0;
+      const expenses = transactions
+        .filter(t => t.type === 'expense')
+        .reduce((sum, t) => sum + t.amount, 0);
         
-        setStats({
-          totalBalance: balance,
-          totalIncome: income,
-          totalExpenses: expenses,
-          savings: savings
-        });
-      }
+      const balance = income - expenses;
+      const savings = balance > 0 ? balance : 0;
+      
+      setStats({
+        totalBalance: balance,
+        totalIncome: income,
+        totalExpenses: expenses,
+        savings: savings
+      });
     } catch (error) {
       console.log('Stats fetch error:', error);
-      // Keep default $0.00 values on error
     } finally {
       setLoading(false);
     }

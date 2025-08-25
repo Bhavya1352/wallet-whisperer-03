@@ -8,10 +8,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 interface AddTransactionFormProps {
   isOpen: boolean;
   onClose: () => void;
+  onTransactionAdded?: () => void;
   type: 'income' | 'expense';
 }
 
-const AddTransactionForm = ({ isOpen, onClose, type }: AddTransactionFormProps) => {
+const AddTransactionForm = ({ isOpen, onClose, onTransactionAdded, type }: AddTransactionFormProps) => {
   const [formData, setFormData] = useState({
     amount: '',
     description: '',
@@ -48,8 +49,11 @@ const AddTransactionForm = ({ isOpen, onClose, type }: AddTransactionFormProps) 
     transactions.push(transaction);
     localStorage.setItem('allTransactions', JSON.stringify(transactions));
 
-    alert(`${type === 'income' ? 'Income' : 'Expense'} added successfully!`);
+    // Trigger storage event for real-time updates
+    window.dispatchEvent(new Event('storage'));
+
     setFormData({ amount: '', description: '', category: '' });
+    if (onTransactionAdded) onTransactionAdded();
     onClose();
   };
 

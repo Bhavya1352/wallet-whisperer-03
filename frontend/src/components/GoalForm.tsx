@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface GoalFormProps {
@@ -14,14 +15,16 @@ const GoalForm = ({ isOpen, onClose }: GoalFormProps) => {
     title: '',
     targetAmount: '',
     deadline: '',
-    category: 'Savings',
+    category: '',
   });
+
+  const categories = ['Emergency Fund', 'Vacation', 'Car', 'House', 'Education', 'Investment', 'Other'];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!formData.title || !formData.targetAmount) {
-      alert('Please fill title and target amount');
+
+    if (!formData.title || !formData.targetAmount || !formData.deadline || !formData.category) {
+      alert('Please fill all fields');
       return;
     }
 
@@ -34,16 +37,20 @@ const GoalForm = ({ isOpen, onClose }: GoalFormProps) => {
       deadline: formData.deadline,
       category: formData.category,
       userId: user.id,
+      userName: user.name,
+      status: 'active',
       createdAt: new Date().toISOString()
     };
 
     // Save to localStorage
-    const goals = JSON.parse(localStorage.getItem('goals') || '[]');
+    const goals = JSON.parse(localStorage.getItem('allGoals') || '[]');
     goals.push(goal);
-    localStorage.setItem('goals', JSON.stringify(goals));
+    localStorage.setItem('allGoals', JSON.stringify(goals));
 
-    alert('Goal created successfully!');
-    setFormData({ title: '', targetAmount: '', deadline: '', category: 'Savings' });
+    // Trigger storage event for real-time updates
+    window.dispatchEvent(new Event('storage'));
+
+    setFormData({ title: '', targetAmount: '', deadline: '', category: '' });
     onClose();
   };
 
@@ -51,7 +58,7 @@ const GoalForm = ({ isOpen, onClose }: GoalFormProps) => {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create Savings Goal</DialogTitle>
+          <DialogTitle>Set Financial Goal</DialogTitle>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -59,7 +66,7 @@ const GoalForm = ({ isOpen, onClose }: GoalFormProps) => {
             <Label htmlFor="title">Goal Title</Label>
             <Input
               id="title"
-              placeholder="e.g., Emergency Fund, Vacation, New Car"
+              placeholder="e.g., Emergency Fund"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               required
@@ -80,23 +87,30 @@ const GoalForm = ({ isOpen, onClose }: GoalFormProps) => {
           </div>
 
           <div>
-            <Label htmlFor="deadline">Target Date (Optional)</Label>
+            <Label htmlFor="deadline">Target Date</Label>
             <Input
               id="deadline"
               type="date"
               value={formData.deadline}
               onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
+              required
             />
           </div>
 
           <div>
             <Label htmlFor="category">Category</Label>
-            <Input
-              id="category"
-              placeholder="e.g., Savings, Investment, Emergency"
-              value={formData.category}
-              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-            />
+            <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select category" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((category) => (
+                  <SelectItem key={category} value={category}>
+                    {category}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="flex gap-2">

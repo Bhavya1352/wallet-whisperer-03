@@ -8,24 +8,21 @@ const SmartInsights = () => {
 
   useEffect(() => {
     fetchInsights();
+    
+    // Listen for storage changes to update insights in real-time
+    const handleStorageChange = () => {
+      fetchInsights();
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
-  const fetchInsights = async () => {
+  const fetchInsights = () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3001/api/transactions', {
-        headers: {
-          'Authorization': `Bearer ${token || 'demo-token'}`
-        }
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        const transactions = data.transactions || [];
-        
-        const generatedInsights = generateInsights(transactions);
-        setInsights(generatedInsights);
-      }
+      const transactions = JSON.parse(localStorage.getItem('allTransactions') || '[]');
+      const generatedInsights = generateInsights(transactions);
+      setInsights(generatedInsights);
     } catch (error) {
       console.log('Insights fetch error:', error);
     } finally {

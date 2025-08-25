@@ -10,15 +10,20 @@ const BudgetQuickView = () => {
 
   useEffect(() => {
     fetchBudgets();
+    
+    // Listen for storage changes to update budgets in real-time
+    const handleStorageChange = () => {
+      fetchBudgets();
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
-  const fetchBudgets = async () => {
+  const fetchBudgets = () => {
     try {
-      const response = await fetch('http://localhost:3001/api/budgets');
-      if (response.ok) {
-        const data = await response.json();
-        setBudgets(data.budgets || []);
-      }
+      const budgets = JSON.parse(localStorage.getItem('allBudgets') || '[]');
+      setBudgets(budgets);
     } catch (error) {
       console.log('Budget fetch error:', error);
     } finally {
@@ -64,17 +69,29 @@ const BudgetQuickView = () => {
       <CardContent>
         {budgets.length > 0 ? (
           <div className="space-y-4">
-            {budgets.slice(0, 3).map((budget, index) => (
-              <div key={index} className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="font-medium">{budget.category}</span>
-                  <span className="text-muted-foreground">
-                    ${budget.amount} / {budget.period}
-                  </span>
+            {budgets.slice(0, 3).map((budget, index) => {
+              // Calculate spending for this category
+              const transactions = JSON.parse(localStorage.getItem('allTransactions') || '[]');
+              const categorySpending = transactions
+                .filter(t => t.type === 'expense' && t.category === budget.category)
+                .reduce((sum, t) => sum + t.amount, 0);
+              const progressPercentage = Math.min((categorySpending / budget.amount) * 100, 100);
+              
+              return (
+                <div key={index} className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="font-medium">{budget.category}</span>
+                    <span className="text-muted-foreground">
+                      ${categorySpending.toFixed(2)} / ${budget.amount} ({budget.period})
+                    </span>
+                  </div>
+                  <Progress value={progressPercentage} className="h-2" />
+                  <div className="text-xs text-muted-foreground text-right">
+                    {progressPercentage.toFixed(1)}% used
+                  </div>
                 </div>
-                <Progress value={Math.random() * 100} className="h-2" />
-              </div>
-            ))}
+              );
+            })}
             {budgets.length > 3 && (
               <p className="text-xs text-muted-foreground text-center">
                 +{budgets.length - 3} more budgets
@@ -92,7 +109,7 @@ const BudgetQuickView = () => {
                 Create budgets to track your spending limits
               </p>
             </div>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={() => window.dispatchEvent(new CustomEvent('openBudgetForm'))}>
               <Plus className="h-4 w-4 mr-2" />
               Create Budget
             </Button>

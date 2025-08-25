@@ -1,120 +1,104 @@
 import { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Target, Plus } from 'lucide-react';
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Target, Calendar, DollarSign } from 'lucide-react';
 
-interface GoalsViewProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-const GoalsView = ({ isOpen, onClose }: GoalsViewProps) => {
+const GoalsView = () => {
   const [goals, setGoals] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const fetchGoals = async () => {
+  useEffect(() => {
+    fetchGoals();
+    
+    // Listen for storage changes to update goals in real-time
+    const handleStorageChange = () => {
+      fetchGoals();
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  const fetchGoals = () => {
     try {
-      setLoading(true);
-      const token = localStorage.getItem('token');
-      if (!token) return;
-
-      const response = await fetch('http://localhost:5000/api/goals', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      
-      const data = await response.json();
-      if (data.success) {
-        setGoals(data.goals);
-      }
+      const goals = JSON.parse(localStorage.getItem('allGoals') || '[]');
+      setGoals(goals);
     } catch (error) {
-      console.error('Error fetching goals:', error);
+      console.log('Goals fetch error:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    if (isOpen) {
-      fetchGoals();
-    }
-  }, [isOpen]);
-
-  const getProgressPercentage = (current: number, target: number) => {
-    return Math.min((current / target) * 100, 100);
-  };
+  if (loading) {
+    return (
+      <Card className="finance-card">
+        <CardHeader>
+          <CardTitle>Financial Goals</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="animate-pulse space-y-4">
+            {[1, 2].map((i) => (
+              <div key={i} className="h-16 bg-muted rounded"></div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Your Savings Goals</DialogTitle>
-        </DialogHeader>
-        
-        <div className="space-y-4">
-          {loading && <p>Loading goals...</p>}
-          
-          {goals.length === 0 && !loading ? (
-            <div className="text-center py-8">
-              <Target className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">No goals set yet</p>
-              <p className="text-sm text-muted-foreground">Create your first savings goal to get started!</p>
-            </div>
-          ) : (
-            <div className="grid gap-4">
-              {goals.map((goal: any) => {
-                const progress = getProgressPercentage(goal.currentAmount, goal.targetAmount);
-                const daysLeft = Math.ceil((new Date(goal.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-                
-                return (
-                  <div key={goal._id} className="p-4 border rounded-lg space-y-3">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-semibold">{goal.title}</h3>
-                        <p className="text-sm text-muted-foreground">{goal.category}</p>
-                      </div>
-                      <div className={`px-2 py-1 rounded text-xs ${
-                        goal.status === 'completed' ? 'bg-green-100 text-green-800' :
-                        goal.status === 'active' ? 'bg-blue-100 text-blue-800' :
-                        'bg-gray-100 text-gray-800'
-                      }`}>
-                        {goal.status}
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span>${goal.currentAmount.toFixed(2)} saved</span>
-                        <span>${goal.targetAmount.toFixed(2)} target</span>
-                      </div>
-                      
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div 
-                          className="bg-primary h-2 rounded-full transition-all duration-300"
-                          style={{ width: `${progress}%` }}
-                        />
-                      </div>
-                      
-                      <div className="flex justify-between items-center text-sm text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <DollarSign className="h-3 w-3" />
-                          <span>{progress.toFixed(1)}% complete</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          <span>
-                            {daysLeft > 0 ? `${daysLeft} days left` : 'Overdue'}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+    <Card className="finance-card">
+      <CardHeader>
+        <CardTitle className="flex items-center justify-between">
+          <span className="flex items-center">
+            <Target className="h-5 w-5 mr-2" />
+            Financial Goals
+          </span>
+          {goals.length > 0 && (
+            <span className="text-sm text-muted-foreground font-normal">
+              {goals.length} goals
+            </span>
           )}
-        </div>
-      </DialogContent>
-    </Dialog>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {goals.length > 0 ? (
+          <div className="space-y-4">
+            {goals.slice(0, 3).map((goal: any, index) => (
+              <div key={index} className="p-3 rounded-lg bg-secondary/20 space-y-2">
+                <div className="flex justify-between items-start">
+                  <h4 className="font-medium">{goal.title}</h4>
+                  <span className="text-sm text-muted-foreground">${goal.targetAmount}</span>
+                </div>
+                <div className="text-sm text-muted-foreground">{goal.category}</div>
+              </div>
+            ))}
+            {goals.length > 3 && (
+              <p className="text-xs text-muted-foreground text-center">
+                +{goals.length - 3} more goals
+              </p>
+            )}
+          </div>
+        ) : (
+          <div className="text-center py-8 space-y-4">
+            <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto">
+              <Target className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <div>
+              <h3 className="font-medium text-muted-foreground">No Goals Set</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Set financial goals to track your progress
+              </p>
+            </div>
+            <Button variant="outline" size="sm" onClick={() => window.dispatchEvent(new CustomEvent('openGoalForm'))}>
+              <Plus className="h-4 w-4 mr-2" />
+              Create Goal
+            </Button>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 

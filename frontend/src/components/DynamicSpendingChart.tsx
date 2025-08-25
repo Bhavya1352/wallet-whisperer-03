@@ -9,37 +9,35 @@ const DynamicSpendingChart = () => {
 
   useEffect(() => {
     fetchChartData();
+    
+    // Listen for storage changes to update chart in real-time
+    const handleStorageChange = () => {
+      fetchChartData();
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
-  const fetchChartData = async () => {
+  const fetchChartData = () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3001/api/transactions', {
-        headers: {
-          'Authorization': `Bearer ${token || 'demo-token'}`
-        }
-      });
+      const transactions = JSON.parse(localStorage.getItem('allTransactions') || '[]');
       
-      if (response.ok) {
-        const data = await response.json();
-        const transactions = data.transactions || [];
-        
-        // Group expenses by category
-        const expensesByCategory = {};
-        transactions
-          .filter(t => t.type === 'expense')
-          .forEach(t => {
-            expensesByCategory[t.category] = (expensesByCategory[t.category] || 0) + t.amount;
-          });
-        
-        const chartData = Object.entries(expensesByCategory).map(([category, amount]) => ({
-          name: category,
-          value: amount
-        }));
-        
-        setChartData(chartData);
-        setHasData(chartData.length > 0);
-      }
+      // Group expenses by category
+      const expensesByCategory = {};
+      transactions
+        .filter(t => t.type === 'expense')
+        .forEach(t => {
+          expensesByCategory[t.category] = (expensesByCategory[t.category] || 0) + t.amount;
+        });
+      
+      const chartData = Object.entries(expensesByCategory).map(([category, amount]) => ({
+        name: category,
+        value: amount
+      }));
+      
+      setChartData(chartData);
+      setHasData(chartData.length > 0);
     } catch (error) {
       console.log('Chart data fetch error:', error);
     } finally {

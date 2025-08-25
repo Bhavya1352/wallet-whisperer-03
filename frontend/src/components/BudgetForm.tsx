@@ -18,10 +18,11 @@ const BudgetForm = ({ isOpen, onClose }: BudgetFormProps) => {
   });
 
   const categories = ['Food', 'Transport', 'Housing', 'Entertainment', 'Healthcare', 'Shopping', 'Other'];
+  const periods = ['weekly', 'monthly', 'yearly'];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.category || !formData.amount) {
       alert('Please fill all fields');
       return;
@@ -34,15 +35,18 @@ const BudgetForm = ({ isOpen, onClose }: BudgetFormProps) => {
       amount: parseFloat(formData.amount),
       period: formData.period,
       userId: user.id,
+      userName: user.name,
       createdAt: new Date().toISOString()
     };
 
     // Save to localStorage
-    const budgets = JSON.parse(localStorage.getItem('budgets') || '[]');
+    const budgets = JSON.parse(localStorage.getItem('allBudgets') || '[]');
     budgets.push(budget);
-    localStorage.setItem('budgets', JSON.stringify(budgets));
+    localStorage.setItem('allBudgets', JSON.stringify(budgets));
 
-    alert('Budget set successfully!');
+    // Trigger storage event for real-time updates
+    window.dispatchEvent(new Event('storage'));
+
     setFormData({ category: '', amount: '', period: 'monthly' });
     onClose();
   };
@@ -91,9 +95,11 @@ const BudgetForm = ({ isOpen, onClose }: BudgetFormProps) => {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="weekly">Weekly</SelectItem>
-                <SelectItem value="monthly">Monthly</SelectItem>
-                <SelectItem value="yearly">Yearly</SelectItem>
+                {periods.map((period) => (
+                  <SelectItem key={period} value={period}>
+                    {period.charAt(0).toUpperCase() + period.slice(1)}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
