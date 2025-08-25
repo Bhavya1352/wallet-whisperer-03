@@ -3,23 +3,26 @@ import { Trash2 } from "lucide-react";
 
 const ClearDataButton = () => {
   const clearAllData = () => {
-    if (confirm('Are you sure you want to clear all data? This will remove all transactions, goals, and budgets.')) {
-      // Keep user login but clear all other data
+    if (confirm('Are you sure you want to clear all data? This cannot be undone.')) {
+      // Clear all localStorage data except user info
       localStorage.removeItem('allTransactions');
-      localStorage.removeItem('goals');
-      localStorage.removeItem('budgets');
-      // Don't remove 'token' and 'user' so user stays logged in
-      alert('All data cleared! You can now add fresh transactions.');
+      localStorage.removeItem('allBudgets');
+      localStorage.removeItem('allGoals');
+      
+      // Trigger refresh
+      window.dispatchEvent(new Event('refreshStats'));
+      
+      alert('All data cleared successfully!');
       window.location.reload();
     }
   };
 
   return (
     <Button 
+      variant="outline" 
+      size="sm" 
       onClick={clearAllData}
-      variant="outline"
-      size="sm"
-      className="text-red-600 border-red-200 hover:bg-red-50"
+      className="text-red-600 hover:text-red-700 hover:bg-red-50"
     >
       <Trash2 className="h-4 w-4 mr-2" />
       Clear All Data

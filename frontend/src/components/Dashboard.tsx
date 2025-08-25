@@ -9,6 +9,7 @@ import GoalsView from "./GoalsView";
 import SmartInsights from "./SmartInsights";
 import BudgetForm from "./BudgetForm";
 import GoalForm from "./GoalForm";
+import ClearDataButton from "./ClearDataButton";
 
 const Dashboard = ({ user }) => {
   const [showExpenseForm, setShowExpenseForm] = useState(false);
@@ -67,8 +68,11 @@ const Dashboard = ({ user }) => {
                 <p className="text-xl text-gray-600 mt-2">
                   Welcome back, <span className="font-semibold text-blue-600">{user?.name}</span>! 🚀
                 </p>
-                <div className="text-sm text-gray-500 mt-2">
-                  ✨ Your personal finance command center
+                <div className="flex items-center justify-center gap-4 mt-4">
+                  <div className="text-sm text-gray-500">
+                    ✨ Your personal finance command center
+                  </div>
+                  <ClearDataButton />
                 </div>
               </div>
             </div>
