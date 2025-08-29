@@ -8,10 +8,6 @@ const Index = () => {
   const [showLogin, setShowLogin] = useState(false);
 
   useEffect(() => {
-    // Clear any existing user data on load
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-    
     const userData = localStorage.getItem('user');
     if (userData) {
       setUser(JSON.parse(userData));

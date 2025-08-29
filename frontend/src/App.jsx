@@ -47,7 +47,6 @@ function App() {
 
   const handleAuth = (e) => {
     e.preventDefault();
-    console.log('🔐 Login attempt:', { email, isLogin });
     
     const userData = { 
       name: name || email.split('@')[0], 
@@ -55,10 +54,9 @@ function App() {
       avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name || email.split('@')[0])}&background=667eea&color=fff&size=100`
     };
     
-    console.log('✅ User data created:', userData);
+    // Immediate dashboard access
     setUser(userData);
     localStorage.setItem('user', JSON.stringify(userData));
-    console.log('💾 User saved to localStorage');
   };
 
   const handleAddTransaction = (e) => {
@@ -182,7 +180,7 @@ function App() {
             </div>
             
             <button type="submit" className="auth-btn">
-              <span>{isLogin ? 'Sign In' : 'Create Account'}</span>
+              <span>{isLogin ? '🚀 Get Started Now' : '🎆 Create Account'}</span>
               <div className="btn-shine"></div>
             </button>
           </form>
