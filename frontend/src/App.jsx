@@ -15,34 +15,12 @@ function App() {
   const [showAddForm, setShowAddForm] = useState(false);
 
   useEffect(() => {
-    // Complete dummy data cleanup on app start
-    const dummyKeys = [
-      'allTransactions', 'allBudgets', 'allGoals', 'demoData', 'sampleData',
-      'testData', 'mockData', 'dummyTransactions', 'dummyBudgets', 'dummyGoals',
-      'initialData', 'seedData', 'expenseTrackerDemo', 'walletWhispererDemo'
-    ];
-    dummyKeys.forEach(key => localStorage.removeItem(key));
+    // Complete localStorage cleanup
+    localStorage.clear();
     
-    // Only load legitimate user data
-    const savedUser = localStorage.getItem('user');
-    const savedTransactions = localStorage.getItem('transactions');
-    
-    if (savedUser) {
-      try {
-        setUser(JSON.parse(savedUser));
-      } catch (e) {
-        localStorage.removeItem('user');
-      }
-    }
-    
-    if (savedTransactions) {
-      try {
-        setTransactions(JSON.parse(savedTransactions));
-      } catch (e) {
-        localStorage.removeItem('transactions');
-        setTransactions([]);
-      }
-    }
+    // Reset all states to empty
+    setTransactions([]);
+    setUser(null);
   }, []);
 
   const handleAuth = (e) => {

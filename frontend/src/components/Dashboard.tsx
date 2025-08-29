@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Wallet, TrendingUp, TrendingDown, PiggyBank, Target } from "lucide-react";
 import DynamicStatsCards from "./DynamicStatsCards";
 import DynamicSpendingChart from "./DynamicSpendingChart";
-import TransactionList from "./TransactionList";
+
 import AddTransactionForm from "./AddTransactionForm";
 import BudgetQuickView from "./BudgetQuickView";
 import GoalsView from "./GoalsView";
@@ -145,8 +145,7 @@ const Dashboard = ({ user }) => {
           {/* Smart Insights */}
           <SmartInsights />
 
-          {/* Recent Transactions */}
-          <TransactionList />
+
 
           {/* Goals Overview */}
           <GoalsView />
