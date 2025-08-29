@@ -119,37 +119,32 @@ const HeroSection = ({ onGetStarted }) => {
             </div>
           </div>
         </div>
-      </div>
+      </section>
+      
+      {/* Key Features */}
+      <section className="py-16 bg-gradient-to-br from-background to-secondary/20">
+        <div className="max-w-4xl mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="finance-card p-6 text-center group hover:shadow-lg transition-all duration-300">
+              <TrendingUp className="h-8 w-8 text-success mx-auto mb-3 group-hover:scale-110 transition-transform" />
+              <h3 className="font-semibold mb-2">Real-time Updates</h3>
+              <p className="text-sm text-muted-foreground">Watch your dashboard populate as you add transactions</p>
+            </div>
             
-            {/* Key Features */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16 max-w-4xl mx-auto">
-              <div className="finance-card p-6 text-center group hover:shadow-lg transition-all duration-300">
-                <TrendingUp className="h-8 w-8 text-success mx-auto mb-3 group-hover:scale-110 transition-transform" />
-                <h3 className="font-semibold mb-2">Real-time Updates</h3>
-                <p className="text-sm text-muted-foreground">Watch your dashboard populate as you add transactions</p>
-              </div>
-              
-              <div className="finance-card p-6 text-center group hover:shadow-lg transition-all duration-300">
-                <Shield className="h-8 w-8 text-primary mx-auto mb-3 group-hover:scale-110 transition-transform" />
-                <h3 className="font-semibold mb-2">Secure & Private</h3>
-                <p className="text-sm text-muted-foreground">Your financial data is encrypted and secure</p>
-              </div>
-              
-              <div className="finance-card p-6 text-center group hover:shadow-lg transition-all duration-300">
-                <Target className="h-8 w-8 text-accent mx-auto mb-3 group-hover:scale-110 transition-transform" />
-                <h3 className="font-semibold mb-2">Smart Goals</h3>
-                <p className="text-sm text-muted-foreground">Set and track your financial goals with ease</p>
-              </div>
+            <div className="finance-card p-6 text-center group hover:shadow-lg transition-all duration-300">
+              <Shield className="h-8 w-8 text-primary mx-auto mb-3 group-hover:scale-110 transition-transform" />
+              <h3 className="font-semibold mb-2">Secure & Private</h3>
+              <p className="text-sm text-muted-foreground">Your financial data is encrypted and secure</p>
+            </div>
+            
+            <div className="finance-card p-6 text-center group hover:shadow-lg transition-all duration-300">
+              <Target className="h-8 w-8 text-accent mx-auto mb-3 group-hover:scale-110 transition-transform" />
+              <h3 className="font-semibold mb-2">Smart Goals</h3>
+              <p className="text-sm text-muted-foreground">Set and track your financial goals with ease</p>
             </div>
           </div>
         </div>
       </section>
-      
-      {/* Demo Showcase */}
-      <DemoShowcase />
-      
-      {/* Feature Showcase */}
-      <FeatureShowcase />
     </div>
   );
 };
