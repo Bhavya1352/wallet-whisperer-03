@@ -13,14 +13,82 @@ interface LoginFormProps {
 
 const LoginForm = ({ isOpen, onClose, onLogin }: LoginFormProps) => {
   const [isLogin, setIsLogin] = useState(true);
+  const [showOtpLogin, setShowOtpLogin] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
+  const [generatedOtp, setGeneratedOtp] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    phone: '',
     password: '',
+    otp: '',
   });
+
+  const generateOtp = () => {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+  };
+
+  const sendOtp = () => {
+    if (!formData.phone) {
+      alert('Please enter phone number!');
+      return;
+    }
+    
+    const otp = generateOtp();
+    setGeneratedOtp(otp);
+    setOtpSent(true);
+    
+    // Simulate SMS sending
+    alert(`OTP sent to ${formData.phone}: ${otp}`);
+  };
+
+  const verifyOtp = () => {
+    if (formData.otp !== generatedOtp) {
+      alert('Invalid OTP! Please try again.');
+      return;
+    }
+    
+    const users = JSON.parse(localStorage.getItem('allUsers') || '[]');
+    let user = users.find(u => u.phone === formData.phone);
+    
+    if (!user) {
+      // Create new user with phone login
+      user = {
+        name: `User_${formData.phone.slice(-4)}`,
+        phone: formData.phone,
+        email: `${formData.phone}@phone.login`,
+        id: Date.now(),
+        createdAt: new Date().toISOString()
+      };
+      users.push(user);
+      localStorage.setItem('allUsers', JSON.stringify(users));
+    }
+    
+    localStorage.setItem('token', 'demo-token-' + user.id);
+    localStorage.setItem('user', JSON.stringify(user));
+    onLogin(user);
+    
+    resetForm();
+    onClose();
+  };
+
+  const resetForm = () => {
+    setFormData({ name: '', email: '', phone: '', password: '', otp: '' });
+    setOtpSent(false);
+    setGeneratedOtp('');
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (showOtpLogin) {
+      if (!otpSent) {
+        sendOtp();
+      } else {
+        verifyOtp();
+      }
+      return;
+    }
     
     const users = JSON.parse(localStorage.getItem('allUsers') || '[]');
     
@@ -41,13 +109,13 @@ const LoginForm = ({ isOpen, onClose, onLogin }: LoginFormProps) => {
       onLogin(existingUser);
     } else {
       // Signup Logic
-      const existingUser = users.find(u => u.email === formData.email);
+      const existingUser = users.find(u => u.email === formData.email || u.phone === formData.phone);
       if (existingUser) {
         alert('User already exists! Please login instead.');
         return;
       }
       
-      if (!formData.name || !formData.email || !formData.password) {
+      if (!formData.name || !formData.email || !formData.phone || !formData.password) {
         alert('Please fill all fields!');
         return;
       }
@@ -55,6 +123,7 @@ const LoginForm = ({ isOpen, onClose, onLogin }: LoginFormProps) => {
       const userData = {
         name: formData.name,
         email: formData.email,
+        phone: formData.phone,
         password: formData.password,
         id: Date.now(),
         createdAt: new Date().toISOString()
@@ -68,7 +137,7 @@ const LoginForm = ({ isOpen, onClose, onLogin }: LoginFormProps) => {
       onLogin(userData);
     }
     
-    setFormData({ name: '', email: '', password: '' });
+    resetForm();
     onClose();
   };
 
@@ -80,68 +149,160 @@ const LoginForm = ({ isOpen, onClose, onLogin }: LoginFormProps) => {
             <Wallet className="h-8 w-8 text-white" />
           </div>
           <DialogTitle className="text-2xl font-bold">
-            {isLogin ? '🔑 Welcome Back!' : '🎉 Join Wallet Whisperer'}
+            {showOtpLogin ? '📱 OTP Login' : 
+             (isLogin ? '🔑 Welcome Back!' : '🎉 Join Wallet Whisperer')}
           </DialogTitle>
           <p className="text-muted-foreground">
-            {isLogin ? 'Login to access your dashboard' : 'Create your account to get started'}
+            {showOtpLogin ? 'Enter your phone number to receive OTP' :
+             (isLogin ? 'Login to access your dashboard' : 'Create your account to get started')}
           </p>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4 mt-6">
-          {!isLogin && (
-            <div>
-              <Label htmlFor="name">Name</Label>
-              <Input
-                id="name"
-                placeholder="Enter your name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                required={!isLogin}
-              />
-            </div>
+          {showOtpLogin ? (
+            // OTP Login Form
+            <>
+              {!otpSent ? (
+                <>
+                  <div>
+                    <Label htmlFor="phone">Phone Number</Label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      placeholder="Enter your phone number"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      required
+                    />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="text-center mb-4">
+                    <p className="text-sm text-muted-foreground">
+                      OTP sent to {formData.phone}
+                    </p>
+                    <p className="text-xs text-green-600 mt-1">
+                      Demo OTP: {generatedOtp}
+                    </p>
+                  </div>
+                  <div>
+                    <Label htmlFor="otp">Enter OTP</Label>
+                    <Input
+                      id="otp"
+                      placeholder="Enter 6-digit OTP"
+                      value={formData.otp}
+                      onChange={(e) => setFormData({ ...formData, otp: e.target.value })}
+                      maxLength={6}
+                      required
+                    />
+                  </div>
+                </>
+              )}
+            </>
+          ) : (
+            // Regular Login/Signup Form
+            <>
+              {!isLogin && (
+                <>
+                  <div>
+                    <Label htmlFor="name">Name</Label>
+                    <Input
+                      id="name"
+                      placeholder="Enter your name"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      required={!isLogin}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="phone">Phone Number</Label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      placeholder="Enter your phone number"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      required={!isLogin}
+                    />
+                  </div>
+                </>
+              )}
+
+              <div>
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Enter your email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="Enter your password"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  required
+                />
+              </div>
+            </>
           )}
-
-          <div>
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="Enter your email"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              required
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="Enter your password"
-              value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              required
-            />
-          </div>
 
           <div className="flex flex-col gap-3 mt-6">
             <Button 
               type="submit" 
               className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
             >
-              {isLogin ? '🚀 Login Now' : '✨ Create Account'}
+              {showOtpLogin ? 
+                (!otpSent ? '📱 Send OTP' : '🔐 Verify OTP') :
+                (isLogin ? '🚀 Login Now' : '✨ Create Account')
+              }
             </Button>
             
-            <div className="text-center">
+            {!showOtpLogin && (
               <Button 
                 type="button" 
-                variant="ghost" 
-                onClick={() => setIsLogin(!isLogin)}
-                className="text-sm text-muted-foreground hover:text-primary"
+                variant="outline" 
+                onClick={() => {
+                  setShowOtpLogin(true);
+                  resetForm();
+                }}
+                className="w-full"
               >
-                {isLogin ? "Don't have an account? Sign Up" : "Already have an account? Login"}
+                📱 Login with OTP
               </Button>
+            )}
+            
+            <div className="text-center">
+              {showOtpLogin ? (
+                <Button 
+                  type="button" 
+                  variant="ghost" 
+                  onClick={() => {
+                    setShowOtpLogin(false);
+                    resetForm();
+                  }}
+                  className="text-sm text-muted-foreground hover:text-primary"
+                >
+                  ← Back to Email Login
+                </Button>
+              ) : (
+                <Button 
+                  type="button" 
+                  variant="ghost" 
+                  onClick={() => setIsLogin(!isLogin)}
+                  className="text-sm text-muted-foreground hover:text-primary"
+                >
+                  {isLogin ? "Don't have an account? Sign Up" : "Already have an account? Login"}
+                </Button>
+              )}
             </div>
             
             <div className="text-center text-xs text-muted-foreground mt-4">

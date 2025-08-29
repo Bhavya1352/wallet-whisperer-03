@@ -18,6 +18,16 @@ const Index = () => {
   const handleLogin = (userData) => {
     setUser(userData);
     localStorage.setItem('user', JSON.stringify(userData));
+    
+    // Check if this is a new user (no previous transactions)
+    const allTransactions = JSON.parse(localStorage.getItem('allTransactions') || '[]');
+    const userTransactions = allTransactions.filter(t => t.userId === userData.id);
+    
+    // If new user has no transactions, they should see clean dashboard
+    if (userTransactions.length === 0) {
+      console.log('New user - clean dashboard');
+    }
+    
     setShowLogin(false);
   };
 
