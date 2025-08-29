@@ -88,11 +88,7 @@ function App() {
     return icons[cat] || '💳';
   };
 
-  const deleteTransaction = (id) => {
-    const newTransactions = transactions.filter(t => t.id !== id);
-    setTransactions(newTransactions);
-    localStorage.setItem('transactions', JSON.stringify(newTransactions));
-  };
+
 
   const totalIncome = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
   const totalExpenses = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
