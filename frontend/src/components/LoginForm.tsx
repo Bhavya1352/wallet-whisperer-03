@@ -24,25 +24,12 @@ const LoginForm = ({ isOpen, onClose, onLogin }: LoginFormProps) => {
     
     let users = JSON.parse(localStorage.getItem('allUsers') || '[]');
     
-    // Create demo user if none exist
-    if (users.length === 0) {
-      const demoUser = {
-        name: 'Demo User',
-        email: 'demo@example.com',
-        password: 'demo123',
-        id: 1,
-        createdAt: new Date().toISOString()
-      };
-      users.push(demoUser);
-      localStorage.setItem('allUsers', JSON.stringify(users));
-    }
-    
     if (isLogin) {
-      // Simple Login - Create user if not exists
+      // Login Logic - Find or create user
       let user = users.find(u => u.email === formData.email);
       
       if (!user) {
-        // Create new user automatically
+        // Create new user if not found
         user = {
           name: formData.email.split('@')[0],
           email: formData.email,
@@ -103,13 +90,6 @@ const LoginForm = ({ isOpen, onClose, onLogin }: LoginFormProps) => {
           <p className="text-muted-foreground">
             {isLogin ? 'Login to access your dashboard' : 'Create your account to get started'}
           </p>
-          {isLogin && (
-            <div className="bg-blue-50 p-3 rounded-lg mt-2">
-              <p className="text-xs text-blue-600 font-medium">Demo Credentials:</p>
-              <p className="text-xs text-blue-600">Email: demo@example.com</p>
-              <p className="text-xs text-blue-600">Password: demo123</p>
-            </div>
-          )}
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4 mt-6">
