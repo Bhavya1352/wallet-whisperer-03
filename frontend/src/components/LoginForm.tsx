@@ -22,28 +22,33 @@ const LoginForm = ({ isOpen, onClose, onLogin }: LoginFormProps) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    const users = JSON.parse(localStorage.getItem('allUsers') || '[]');
+    let users = JSON.parse(localStorage.getItem('allUsers') || '[]');
     
     if (isLogin) {
-      // Login Logic
-      const existingUser = users.find(u => u.email === formData.email);
-      if (!existingUser) {
-        alert('User not found! Please sign up first.');
-        return;
-      }
-      if (existingUser.password !== formData.password) {
-        alert('Invalid password!');
-        return;
+      // Login Logic - Find or create user
+      let user = users.find(u => u.email === formData.email);
+      
+      if (!user) {
+        // Create new user if not found
+        user = {
+          name: formData.email.split('@')[0],
+          email: formData.email,
+          password: formData.password,
+          id: Date.now(),
+          createdAt: new Date().toISOString()
+        };
+        users.push(user);
+        localStorage.setItem('allUsers', JSON.stringify(users));
       }
       
-      localStorage.setItem('token', 'demo-token-' + existingUser.id);
-      localStorage.setItem('user', JSON.stringify(existingUser));
-      onLogin(existingUser);
+      localStorage.setItem('token', 'demo-token-' + user.id);
+      localStorage.setItem('user', JSON.stringify(user));
+      onLogin(user);
     } else {
       // Signup Logic
       const existingUser = users.find(u => u.email === formData.email);
       if (existingUser) {
-        alert('User already exists! Please login instead.');
+        alert('Email already registered! Please login instead.');
         return;
       }
       
@@ -96,7 +101,7 @@ const LoginForm = ({ isOpen, onClose, onLogin }: LoginFormProps) => {
                 placeholder="Enter your name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                required={!isLogin}
+                required
               />
             </div>
           )}
