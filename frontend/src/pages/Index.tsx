@@ -35,10 +35,10 @@ const Index = () => {
         onLogout={handleLogout} 
       />
       
-      {!user ? (
-        <HeroSection onGetStarted={() => setShowLogin(true)} />
-      ) : (
+      {user ? (
         <Dashboard user={user} />
+      ) : (
+        <HeroSection onGetStarted={() => setShowLogin(true)} />
       )}
       
       <LoginForm 
