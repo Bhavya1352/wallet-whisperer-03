@@ -34,12 +34,17 @@ const LoginForm = ({ isOpen, onClose, onLogin }: LoginFormProps) => {
       return;
     }
     
+    if (formData.phone.length < 10) {
+      alert('Please enter valid 10-digit phone number!');
+      return;
+    }
+    
     const otp = generateOtp();
     setGeneratedOtp(otp);
     setOtpSent(true);
     
-    // Simulate SMS sending
-    alert(`OTP sent to ${formData.phone}: ${otp}`);
+    // Show OTP in alert for demo
+    alert(`📱 OTP sent to ${formData.phone}\n\n🔢 Your OTP: ${otp}\n\n(This is demo - in real app, OTP comes via SMS)`);
   };
 
   const verifyOtp = () => {
@@ -161,7 +166,10 @@ const LoginForm = ({ isOpen, onClose, onLogin }: LoginFormProps) => {
       onLogin(userData);
     }
     
-    resetForm();
+    setFormData({ name: '', email: '', phone: '', password: '', otp: '' });
+    setShowOtpLogin(false);
+    setOtpSent(false);
+    setGeneratedOtp('');
     onClose();
   };
 
@@ -209,13 +217,18 @@ const LoginForm = ({ isOpen, onClose, onLogin }: LoginFormProps) => {
                 </>
               ) : (
                 <>
-                  <div className="text-center mb-4">
-                    <p className="text-sm text-muted-foreground">
-                      OTP sent to {formData.phone}
+                  <div className="text-center mb-4 bg-green-50 p-4 rounded-lg">
+                    <p className="text-sm text-green-700 font-medium">
+                      📱 OTP sent to {formData.phone}
                     </p>
-                    <p className="text-xs text-green-600 mt-1">
-                      Demo OTP: {generatedOtp}
-                    </p>
+                    <div className="mt-2 p-2 bg-green-100 rounded border-2 border-green-300">
+                      <p className="text-lg font-bold text-green-800">
+                        Demo OTP: {generatedOtp}
+                      </p>
+                      <p className="text-xs text-green-600 mt-1">
+                        Copy this OTP and enter below
+                      </p>
+                    </div>
                   </div>
                   <div>
                     <Label htmlFor="otp">Enter OTP</Label>
