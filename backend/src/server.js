@@ -10,7 +10,10 @@ const app = express();
 
 // Middleware
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:5173', 'http://localhost:3000', 'https://wallet-whisperer-03.vercel.app'],
+  credentials: true
+}));
 
 // LIVE MONITORING
 app.use((req, res, next) => {
@@ -52,61 +55,49 @@ app.get("/", (req, res) => {
 // Add OTP routes
 app.use('/api/auth', authRoutes);
 
-// Frontend API Routes
-app.post('/api/login', async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    
-    // Find user in database
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(400).json({ message: 'User not found' });
-    }
-    
-    // Check password (in production, use bcrypt)
-    if (user.password !== password) {
-      return res.status(400).json({ message: 'Invalid password' });
-    }
-    
-    res.json({
-      success: true,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email
-      },
-      token: 'jwt-token-' + user._id
-    });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
+// AUTH ROUTES
 app.post('/api/register', async (req, res) => {
   try {
     const { name, email, password } = req.body;
     
-    // Check if user exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ message: 'User already exists' });
+      return res.status(400).json({ success: false, message: 'User already exists' });
     }
     
-    // Create new user
     const user = new User({ name, email, password });
     await user.save();
     
+    console.log(`✅ NEW USER REGISTERED: ${user.name} (${user.email})`);
+    
     res.json({
       success: true,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email
-      },
-      token: 'jwt-token-' + user._id
+      user: { id: user._id, name: user.name, email: user.email },
+      token: 'token-' + user._id
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+app.post('/api/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    
+    const user = await User.findOne({ email });
+    if (!user || user.password !== password) {
+      return res.status(400).json({ success: false, message: 'Invalid credentials' });
+    }
+    
+    console.log(`🔑 USER LOGGED IN: ${user.name} (${user.email})`);
+    
+    res.json({
+      success: true,
+      user: { id: user._id, name: user.name, email: user.email },
+      token: 'token-' + user._id
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
 });
 
@@ -317,26 +308,22 @@ mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/wallet-whis
   })
   .catch((err) => console.error("❌ MongoDB Error:", err));
 
-// USER TRANSACTION ROUTES
+// TRANSACTION ROUTES
 app.get("/api/transactions", async (req, res) => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) {
-      return res.status(401).json({ message: 'No token provided' });
+      return res.status(401).json({ success: false, message: 'No token provided' });
     }
     
-    // For now, return all transactions (in real app, filter by user)
-    const transactions = await Transaction.find().sort({ date: -1 });
+    const userId = token.replace('token-', '');
+    const transactions = await Transaction.find({ userId }).sort({ date: -1 });
     
-    console.log(`📋 User requested ${transactions.length} transactions`);
+    console.log(`📋 Found ${transactions.length} transactions for user ${userId}`);
     
-    res.json({
-      success: true,
-      transactions: transactions
-    });
+    res.json({ success: true, transactions });
   } catch (error) {
-    console.error('Get transactions error:', error.message);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 });
 
@@ -344,25 +331,14 @@ app.post("/api/transactions", async (req, res) => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) {
-      return res.status(401).json({ message: 'No token provided' });
+      return res.status(401).json({ success: false, message: 'No token provided' });
     }
     
+    const userId = token.replace('token-', '');
     const { type, amount, description, category } = req.body;
     
-    console.log(`\n🔥 NEW TRANSACTION REQUEST:`);
-    console.log(`   Type: ${type}`);
-    console.log(`   Amount: $${amount}`);
-    console.log(`   Description: ${description}`);
-    console.log(`   Category: ${category}`);
-    
-    // Create transaction (using first user for demo)
-    const firstUser = await User.findOne();
-    if (!firstUser) {
-      return res.status(400).json({ message: 'No users found. Create sample data first.' });
-    }
-    
     const transaction = new Transaction({
-      userId: firstUser._id,
+      userId,
       type,
       amount: parseFloat(amount),
       description,
@@ -372,27 +348,11 @@ app.post("/api/transactions", async (req, res) => {
     
     await transaction.save();
     
-    console.log(`✅ TRANSACTION SAVED TO DATABASE!`);
-    console.log(`   ID: ${transaction._id}`);
-    console.log(`   User: ${firstUser.name}`);
-    console.log(`═`.repeat(50));
+    console.log(`💰 ${type.toUpperCase()}: $${amount} - ${description} (${category})`);
     
-    res.json({
-      success: true,
-      message: 'Transaction added successfully',
-      transaction: {
-        _id: transaction._id,
-        type: transaction.type,
-        amount: transaction.amount,
-        description: transaction.description,
-        category: transaction.category,
-        date: transaction.date,
-        userId: transaction.userId
-      }
-    });
+    res.json({ success: true, transaction });
   } catch (error) {
-    console.error('❌ ADD TRANSACTION ERROR:', error.message);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 });
 

@@ -1,121 +1,181 @@
-# 🧠 Wallet Whisperer - Smart Finance Tracker
+# 💰 Expense Tracker - Full Stack Application
 
-A complete personal finance management application that grows with your data!
+A modern, responsive expense tracking application built with React.js and Node.js. Perfect for managing personal finances with real-time analytics and beautiful visualizations.
 
-## 🚀 Live Demo
-**[Try it now: https://wallet-whisperer-03.vercel.app/](https://wallet-whisperer-03.vercel.app/)**
+## 🚀 Features
 
-## ✨ Key Features
+### 🔐 Authentication
+- User registration and login
+- JWT-based authentication
+- Secure password hashing with bcrypt
 
-### 📊 **Dynamic Data Visualization**
-- **Initially:** Clean interface with $0.00 values
-- **After adding data:** Real-time updates with your transactions
-- **Live charts:** Automatically populate as you add data
-
-### 🔐 **User Authentication**
-- Simple login/signup system
-- Secure user sessions
-- Personal data tracking
-
-### 💰 **Transaction Management**
-- Add income and expenses
+### 💳 Transaction Management
+- Add income and expense transactions
 - Categorize transactions
 - Real-time balance calculation
-- Transaction history
+- Transaction history with filtering
 
-### 🎯 **Goal Setting & Budgeting**
-- Set savings goals
-- Create category budgets
-- Track progress visually
-
-### 📈 **Smart Analytics**
-- Monthly income vs expenses charts
+### 📊 Analytics & Insights
+- Visual charts and graphs
 - Category-wise spending breakdown
-- Balance trends over time
+- Monthly/yearly financial trends
+- Balance tracking over time
 
-## 🎬 How It Works
+### 🎨 Modern UI/UX
+- Responsive design for all devices
+- Beautiful gradient backgrounds
+- Smooth animations and transitions
+- Intuitive user interface
 
-### Step 1: Start Fresh
-- All stats show $0.00
-- Empty charts with "No Data Yet"
-- Clean, professional interface
-
-### Step 2: Add Your Data
-- Login/Signup to get started
-- Add your first income transaction
-- Add expense transactions
-- Set financial goals
-
-### Step 3: Watch It Grow
-- Stats automatically update
-- Charts populate with real data
-- Visual progress tracking
-
-## 🛠️ Technologies Used
+## 🛠️ Tech Stack
 
 ### Frontend
-- **React** with TypeScript
-- **Tailwind CSS** for styling
-- **Recharts** for data visualization
-- **Radix UI** components
-- **Vite** for build tooling
+- **React.js** - UI library
+- **React Router** - Navigation
+- **Tailwind CSS** - Styling
+- **Recharts** - Data visualization
+- **React Hot Toast** - Notifications
 
-### Backend Ready
-- **Node.js** with Express
-- **MongoDB** for data storage
-- **JWT** authentication
+### Backend
+- **Node.js** - Runtime environment
+- **Express.js** - Web framework
+- **MongoDB** - Database
+- **Mongoose** - ODM
+- **JWT** - Authentication
+- **bcrypt** - Password hashing
 
-## ⚡ Quick Start
+## 📦 Installation & Setup
 
-1. Visit: https://wallet-whisperer-03.vercel.app/
-2. Click "Login" in navbar
-3. Sign up with your details
-4. Start adding your real transactions
-5. Watch your personal dashboard come to life!
+### Prerequisites
+- Node.js (v14 or higher)
+- MongoDB (local or cloud)
+- Git
 
-## 📱 Features Showcase
+### 1. Clone Repository
+```bash
+git clone <repository-url>
+cd expense-tracker
+```
 
-### 🎯 **Progressive Data Building**
-- Start with clean $0.00 interface
-- Add your real income → see balance update
-- Add your expenses → watch charts populate
-- Set your goals → track real progress
+### 2. Backend Setup
+```bash
+cd backend
+npm install
+```
 
-### 📊 **Real-time Updates**
-- Every transaction immediately updates stats
-- Charts redraw with your data
-- Balance calculations happen instantly
+Create `.env` file:
+```env
+MONGO_URI=mongodb://localhost:27017/expense-tracker
+JWT_SECRET=your-secret-key
+PORT=3001
+```
 
-### 🔍 **Admin Panel**
-- View all users and transactions
-- Monitor real app usage
-- Data management tools
+Start backend server:
+```bash
+npm run dev
+```
 
-## 🎨 UI/UX Highlights
+### 3. Frontend Setup
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
-- **Clean Design:** Professional, modern interface
-- **Responsive:** Works on all devices
-- **Interactive:** Smooth animations
-- **Intuitive:** Easy-to-use forms
+### 4. Access Application
+- Frontend: http://localhost:5173
+- Backend API: http://localhost:3001
+
+## 🎯 Usage
+
+### Getting Started
+1. **Register**: Create a new account with your email
+2. **Login**: Sign in to access your dashboard
+3. **Add Transactions**: Record your income and expenses
+4. **View Analytics**: Check your financial insights
+5. **Track Progress**: Monitor your spending patterns
+
+### Demo Credentials
+- Email: `demo@example.com`
+- Password: `password123`
+
+## 📱 Screenshots
+
+### Login Page
+- Clean, modern design
+- Responsive layout
+- Demo credentials provided
+
+### Dashboard
+- Financial overview cards
+- Quick action buttons
+- Recent transactions
+- Balance visualization
+
+### Analytics
+- Interactive charts
+- Category breakdowns
+- Spending trends
+
+## 🔧 API Endpoints
+
+### Authentication
+- `POST /api/auth/register` - User registration
+- `POST /api/auth/login` - User login
+
+### Transactions
+- `GET /api/transactions` - Get user transactions
+- `POST /api/transactions` - Add new transaction
+- `DELETE /api/transactions/:id` - Delete transaction
+
+### Analytics
+- `GET /api/stats` - Get financial statistics
 
 ## 🚀 Deployment
 
-- **Frontend:** Deployed on Vercel
-- **Auto-deploy:** Every git push triggers deployment
-- **Fast CDN:** Global content delivery
-- **SSL:** Secure HTTPS connection
+### Frontend (Vercel)
+```bash
+npm run build
+# Deploy to Vercel
+```
 
-## 🎯 Demo Flow
+### Backend (Railway/Heroku)
+```bash
+# Set environment variables
+# Deploy to your preferred platform
+```
 
-1. **Visit app** → See clean $0.00 interface
-2. **Login/Signup** → Quick authentication
-3. **Add your income** → Watch balance increase
-4. **Add your expenses** → See spending categories
-5. **View charts** → Your data visualization
-6. **Set goals** → Track your financial targets
+## 📈 Future Enhancements
+
+- [ ] Budget planning and alerts
+- [ ] Recurring transactions
+- [ ] Export data to CSV/PDF
+- [ ] Multi-currency support
+- [ ] Mobile app (React Native)
+- [ ] Bank account integration
+- [ ] Investment tracking
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit changes (`git commit -m 'Add AmazingFeature'`)
+4. Push to branch (`git push origin feature/AmazingFeature`)
+5. Open Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 👨‍💻 Developer
+
+**Your Name**
+- Portfolio: [your-portfolio.com]
+- LinkedIn: [your-linkedin]
+- Email: [your-email]
 
 ---
 
-**Built with ❤️ by Bhavya**
+⭐ **Star this repository if you found it helpful!**
 
-*A complete finance tracking solution that grows with YOUR data!*
+Built with ❤️ using React.js and Node.js

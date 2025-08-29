@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Login - Wallet Whisperer</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 600px; 
+            margin: 50px auto; 
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            background: rgba(255,255,255,0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+        input, button { 
+            width: 100%; 
+            padding: 12px; 
+            margin: 10px 0; 
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        button { 
+            background: linear-gradient(45deg, #4CAF50, #45a049); 
+            color: white; 
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover { 
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Wallet Whisperer - Login Test</h1>
+        
+        <h3>📝 Register New User</h3>
+        <input type="text" id="name" placeholder="Your Name" />
+        <input type="email" id="email" placeholder="Your Email" />
+        <input type="password" id="password" placeholder="Your Password" />
+        <button onclick="register()">✨ Create Account</button>
+        
+        <h3>🔑 Login Existing User</h3>
+        <input type="email" id="loginEmail" placeholder="Email" />
+        <input type="password" id="loginPassword" placeholder="Password" />
+        <button onclick="login()">🚀 Login</button>
+        
+        <div id="result" class="result"></div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3001';
+        
+        async function register() {
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                const response = await fetch(`${API_URL}/api/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password })
+                });
+                
+                const data = await response.json();
+                document.getElementById('result').innerHTML = 
+                    `<h4>✅ Registration Result:</h4><pre>${JSON.stringify(data, null, 2)}</pre>`;
+            } catch (error) {
+                document.getElementById('result').innerHTML = 
+                    `<h4>❌ Error:</h4><p>${error.message}</p>`;
+            }
+        }
+        
+        async function login() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            try {
+                const response = await fetch(`${API_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                document.getElementById('result').innerHTML = 
+                    `<h4>🔑 Login Result:</h4><pre>${JSON.stringify(data, null, 2)}</pre>`;
+            } catch (error) {
+                document.getElementById('result').innerHTML = 
+                    `<h4>❌ Error:</h4><p>${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>

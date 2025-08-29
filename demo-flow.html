@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🚀 Wallet Whisperer - Complete Flow Demo</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 800px; 
+            margin: 20px auto; 
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            line-height: 1.6;
+        }
+        .container {
+            background: rgba(255,255,255,0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            margin-bottom: 20px;
+        }
+        .step {
+            background: rgba(255,255,255,0.2);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border-left: 4px solid #4CAF50;
+        }
+        .balance {
+            font-size: 2em;
+            font-weight: bold;
+            text-align: center;
+            padding: 20px;
+            background: rgba(76, 175, 80, 0.2);
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        button { 
+            background: linear-gradient(45deg, #4CAF50, #45a049); 
+            color: white; 
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 5px;
+        }
+        button:hover { 
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .income { background: linear-gradient(45deg, #4CAF50, #45a049); }
+        .expense { background: linear-gradient(45deg, #f44336, #d32f2f); }
+        .clear { background: linear-gradient(45deg, #ff9800, #f57c00); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Wallet Whisperer - Complete User Flow</h1>
+        <p>Test the complete finance tracking experience:</p>
+        
+        <div class="step">
+            <h3>👤 Step 1: User Login</h3>
+            <p>User creates account and logs in</p>
+            <button onclick="simulateLogin()">🔑 Simulate Login</button>
+            <div id="loginStatus"></div>
+        </div>
+        
+        <div class="step">
+            <h3>💰 Step 2: Add Income</h3>
+            <p>User adds their salary/income</p>
+            <button class="income" onclick="addIncome(5000, 'Monthly Salary')">💵 Add $5000 Salary</button>
+            <button class="income" onclick="addIncome(500, 'Freelance Work')">💼 Add $500 Freelance</button>
+        </div>
+        
+        <div class="step">
+            <h3>💳 Step 3: Add Expenses</h3>
+            <p>User records their spending</p>
+            <button class="expense" onclick="addExpense(1200, 'Rent', 'Housing')">🏠 Add $1200 Rent</button>
+            <button class="expense" onclick="addExpense(300, 'Groceries', 'Food')">🛒 Add $300 Groceries</button>
+            <button class="expense" onclick="addExpense(150, 'Gas Bill', 'Utilities')">⚡ Add $150 Gas</button>
+            <button class="expense" onclick="addExpense(80, 'Netflix', 'Entertainment')">📺 Add $80 Netflix</button>
+        </div>
+        
+        <div class="balance" id="balanceDisplay">
+            💰 Total Balance: $0.00
+        </div>
+        
+        <div class="step">
+            <h3>📊 Step 4: View Summary</h3>
+            <div id="summary"></div>
+            <button onclick="updateSummary()">🔄 Refresh Summary</button>
+        </div>
+        
+        <div class="step">
+            <button class="clear" onclick="clearAllData()">🗑️ Clear All Data</button>
+            <button onclick="window.open('http://localhost:5173', '_blank')">🌐 Open Real App</button>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+        
+        function simulateLogin() {
+            currentUser = {
+                id: Date.now(),
+                name: 'Demo User',
+                email: 'demo@example.com'
+            };
+            
+            localStorage.setItem('user', JSON.stringify(currentUser));
+            document.getElementById('loginStatus').innerHTML = 
+                `<p style="color: #4CAF50;">✅ Logged in as: ${currentUser.name}</p>`;
+            updateSummary();
+        }
+        
+        function addIncome(amount, description) {
+            if (!currentUser) {
+                alert('Please login first!');
+                return;
+            }
+            
+            const transaction = {
+                id: Date.now() + Math.random(),
+                type: 'income',
+                amount: amount,
+                description: description,
+                category: 'Income',
+                date: new Date().toISOString(),
+                userId: currentUser.id,
+                userName: currentUser.name
+            };
+            
+            saveTransaction(transaction);
+            updateBalance();
+            updateSummary();
+        }
+        
+        function addExpense(amount, description, category) {
+            if (!currentUser) {
+                alert('Please login first!');
+                return;
+            }
+            
+            const transaction = {
+                id: Date.now() + Math.random(),
+                type: 'expense',
+                amount: amount,
+                description: description,
+                category: category,
+                date: new Date().toISOString(),
+                userId: currentUser.id,
+                userName: currentUser.name
+            };
+            
+            saveTransaction(transaction);
+            updateBalance();
+            updateSummary();
+        }
+        
+        function saveTransaction(transaction) {
+            const transactions = JSON.parse(localStorage.getItem('allTransactions') || '[]');
+            transactions.push(transaction);
+            localStorage.setItem('allTransactions', JSON.stringify(transactions));
+        }
+        
+        function updateBalance() {
+            const transactions = JSON.parse(localStorage.getItem('allTransactions') || '[]');
+            const userTransactions = transactions.filter(t => t.userId === currentUser?.id);
+            
+            const totalIncome = userTransactions
+                .filter(t => t.type === 'income')
+                .reduce((sum, t) => sum + t.amount, 0);
+                
+            const totalExpenses = userTransactions
+                .filter(t => t.type === 'expense')
+                .reduce((sum, t) => sum + t.amount, 0);
+                
+            const balance = totalIncome - totalExpenses;
+            
+            document.getElementById('balanceDisplay').innerHTML = 
+                `💰 Total Balance: $${balance.toFixed(2)}`;
+        }
+        
+        function updateSummary() {
+            if (!currentUser) {
+                document.getElementById('summary').innerHTML = 
+                    '<p style="color: #ff9800;">⚠️ Please login to see summary</p>';
+                return;
+            }
+            
+            const transactions = JSON.parse(localStorage.getItem('allTransactions') || '[]');
+            const userTransactions = transactions.filter(t => t.userId === currentUser.id);
+            
+            const totalIncome = userTransactions
+                .filter(t => t.type === 'income')
+                .reduce((sum, t) => sum + t.amount, 0);
+                
+            const totalExpenses = userTransactions
+                .filter(t => t.type === 'expense')
+                .reduce((sum, t) => sum + t.amount, 0);
+                
+            const balance = totalIncome - totalExpenses;
+            
+            document.getElementById('summary').innerHTML = `
+                <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px;">
+                    <h4>📊 Financial Summary for ${currentUser.name}</h4>
+                    <p>💵 Total Income: $${totalIncome.toFixed(2)}</p>
+                    <p>💳 Total Expenses: $${totalExpenses.toFixed(2)}</p>
+                    <p style="font-size: 1.2em; font-weight: bold; color: ${balance >= 0 ? '#4CAF50' : '#f44336'};">
+                        💰 Net Balance: $${balance.toFixed(2)}
+                    </p>
+                    <p>📈 Transactions: ${userTransactions.length}</p>
+                </div>
+            `;
+        }
+        
+        function clearAllData() {
+            localStorage.removeItem('user');
+            localStorage.removeItem('allTransactions');
+            currentUser = null;
+            document.getElementById('loginStatus').innerHTML = '';
+            document.getElementById('summary').innerHTML = '';
+            document.getElementById('balanceDisplay').innerHTML = '💰 Total Balance: $0.00';
+            alert('🗑️ All data cleared!');
+        }
+        
+        // Initialize
+        const savedUser = localStorage.getItem('user');
+        if (savedUser) {
+            currentUser = JSON.parse(savedUser);
+            document.getElementById('loginStatus').innerHTML = 
+                `<p style="color: #4CAF50;">✅ Logged in as: ${currentUser.name}</p>`;
+            updateBalance();
+            updateSummary();
+        }
+    </script>
+</body>
+</html>

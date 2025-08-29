@@ -23,7 +23,7 @@ const AddTransactionForm = ({ isOpen, onClose, onTransactionAdded, type }: AddTr
     ? ['Food', 'Transport', 'Housing', 'Entertainment', 'Healthcare', 'Shopping', 'Other']
     : ['Salary', 'Freelance', 'Investment', 'Business', 'Other'];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!formData.amount || !formData.description || !formData.category) {
@@ -31,32 +31,41 @@ const AddTransactionForm = ({ isOpen, onClose, onTransactionAdded, type }: AddTr
       return;
     }
 
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    const transaction = {
-      id: Date.now(),
-      type,
-      amount: parseFloat(formData.amount),
-      description: formData.description,
-      category: formData.category,
-      date: new Date().toISOString(),
-      userId: user.id,
-      userName: user.name,
-      userEmail: user.email
-    };
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:3001/api/transactions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          type,
+          amount: parseFloat(formData.amount),
+          description: formData.description,
+          category: formData.category
+        })
+      });
 
-    // Save to localStorage
-    const transactions = JSON.parse(localStorage.getItem('allTransactions') || '[]');
-    transactions.push(transaction);
-    localStorage.setItem('allTransactions', JSON.stringify(transactions));
-
-    // Trigger multiple events for real-time updates
-    window.dispatchEvent(new Event('storage'));
-    window.dispatchEvent(new Event('refreshStats'));
-    window.dispatchEvent(new Event('transactionAdded'));
-
-    setFormData({ amount: '', description: '', category: '' });
-    if (onTransactionAdded) onTransactionAdded();
-    onClose();
+      const data = await response.json();
+      
+      if (data.success) {
+        // Trigger refresh events
+        window.dispatchEvent(new Event('refreshStats'));
+        window.dispatchEvent(new Event('transactionAdded'));
+        
+        setFormData({ amount: '', description: '', category: '' });
+        if (onTransactionAdded) onTransactionAdded();
+        onClose();
+        
+        alert(`${type === 'income' ? 'Income' : 'Expense'} added successfully!`);
+      } else {
+        alert(data.message || 'Failed to add transaction');
+      }
+    } catch (error) {
+      console.error('Transaction error:', error);
+      alert('Failed to add transaction. Please try again.');
+    }
   };
 
   return (
