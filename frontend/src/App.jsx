@@ -298,11 +298,13 @@ function App() {
               <p className="stat-value">{transactions.length}</p>
               <span className="stat-label">Total records</span>
             </div>
-            <div className="mini-chart">
-              {transactions.slice(0, 7).map((_, i) => (
-                <div key={i} className="chart-bar" style={{height: `${Math.random() * 100}%`}}></div>
-              ))}
-            </div>
+            {transactions.length > 0 && (
+              <div className="mini-chart">
+                {transactions.slice(0, 7).map((_, i) => (
+                  <div key={i} className="chart-bar" style={{height: `${Math.random() * 100}%`}}></div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
@@ -330,88 +332,42 @@ function App() {
           </div>
         </div>
 
-        {/* Content Grid */}
-        <div className="content-grid">
-          {/* Recent Transactions */}
-          <div className="content-card transactions-list">
-            <div className="card-header">
-              <h3>Recent Transactions</h3>
-              <span className="card-icon">📋</span>
-            </div>
-            
-            <div className="transactions-container">
-              {transactions.length === 0 ? (
-                <div className="empty-state">
-                  <div className="empty-icon">💸</div>
-                  <h4>No transactions yet</h4>
-                  <p>Start by adding your first transaction</p>
+        {/* Charts - Only show when data exists */}
+        {(transactions.length > 0 || totalIncome > 0 || totalExpenses > 0) && (
+          <div className="content-grid">
+            {/* Expense Categories Chart */}
+            {Object.keys(expenseCategories).length > 0 && (
+              <div className="content-card category-chart">
+                <div className="card-header">
+                  <h3>Expense Categories</h3>
+                  <span className="card-icon">🎯</span>
                 </div>
-              ) : (
-                transactions.slice(0, 8).map((transaction) => (
-                  <div key={transaction.id} className="transaction-item">
-                    <div className="transaction-icon">
-                      {transaction.icon}
-                    </div>
-                    <div className="transaction-details">
-                      <h4>{transaction.description}</h4>
-                      <p>{transaction.category} • {new Date(transaction.date).toLocaleDateString()}</p>
-                    </div>
-                    <div className="transaction-amount">
-                      <span className={`amount ${transaction.type}`}>
-                        {transaction.type === 'income' ? '+' : '-'}${transaction.amount.toFixed(2)}
-                      </span>
-                      <button 
-                        className="delete-btn"
-                        onClick={() => deleteTransaction(transaction.id)}
-                      >
-                        🗑️
-                      </button>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-
-          {/* Category Breakdown */}
-          <div className="content-card category-chart">
-            <div className="card-header">
-              <h3>Expense Categories</h3>
-              <span className="card-icon">🎯</span>
-            </div>
-            
-            {Object.keys(expenseCategories).length === 0 ? (
-              <div className="empty-state">
-                <div className="empty-icon">📊</div>
-                <h4>No expense data</h4>
-                <p>Add expenses to see breakdown</p>
-              </div>
-            ) : (
-              <div className="category-list">
-                {Object.entries(expenseCategories)
-                  .sort(([,a], [,b]) => b - a)
-                  .slice(0, 6)
-                  .map(([cat, amount]) => (
-                    <div key={cat} className="category-item">
-                      <div className="category-info">
-                        <span className="category-icon">{getCategoryIcon(cat)}</span>
-                        <span className="category-name">{cat}</span>
-                      </div>
-                      <div className="category-amount">
-                        <span>${amount.toFixed(2)}</span>
-                        <div className="category-bar">
-                          <div 
-                            className="category-fill"
-                            style={{width: `${(amount / totalExpenses) * 100}%`}}
-                          ></div>
+                <div className="category-list">
+                  {Object.entries(expenseCategories)
+                    .sort(([,a], [,b]) => b - a)
+                    .slice(0, 6)
+                    .map(([cat, amount]) => (
+                      <div key={cat} className="category-item">
+                        <div className="category-info">
+                          <span className="category-icon">{getCategoryIcon(cat)}</span>
+                          <span className="category-name">{cat}</span>
+                        </div>
+                        <div className="category-amount">
+                          <span>${amount.toFixed(2)}</span>
+                          <div className="category-bar">
+                            <div 
+                              className="category-fill"
+                              style={{width: `${(amount / totalExpenses) * 100}%`}}
+                            ></div>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                </div>
               </div>
             )}
           </div>
-        </div>
+        )}
       </main>
 
       {/* Add Transaction Modal */}
