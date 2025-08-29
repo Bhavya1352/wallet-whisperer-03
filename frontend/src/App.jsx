@@ -15,21 +15,50 @@ function App() {
   const [showAddForm, setShowAddForm] = useState(false);
 
   useEffect(() => {
+    // Complete dummy data cleanup on app start
+    const dummyKeys = [
+      'allTransactions', 'allBudgets', 'allGoals', 'demoData', 'sampleData',
+      'testData', 'mockData', 'dummyTransactions', 'dummyBudgets', 'dummyGoals',
+      'initialData', 'seedData', 'expenseTrackerDemo', 'walletWhispererDemo'
+    ];
+    dummyKeys.forEach(key => localStorage.removeItem(key));
+    
+    // Only load legitimate user data
     const savedUser = localStorage.getItem('user');
     const savedTransactions = localStorage.getItem('transactions');
-    if (savedUser) setUser(JSON.parse(savedUser));
-    if (savedTransactions) setTransactions(JSON.parse(savedTransactions));
+    
+    if (savedUser) {
+      try {
+        setUser(JSON.parse(savedUser));
+      } catch (e) {
+        localStorage.removeItem('user');
+      }
+    }
+    
+    if (savedTransactions) {
+      try {
+        setTransactions(JSON.parse(savedTransactions));
+      } catch (e) {
+        localStorage.removeItem('transactions');
+        setTransactions([]);
+      }
+    }
   }, []);
 
   const handleAuth = (e) => {
     e.preventDefault();
+    console.log('🔐 Login attempt:', { email, isLogin });
+    
     const userData = { 
       name: name || email.split('@')[0], 
       email,
       avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name || email.split('@')[0])}&background=667eea&color=fff&size=100`
     };
+    
+    console.log('✅ User data created:', userData);
     setUser(userData);
     localStorage.setItem('user', JSON.stringify(userData));
+    console.log('💾 User saved to localStorage');
   };
 
   const handleAddTransaction = (e) => {
@@ -158,9 +187,7 @@ function App() {
             </button>
           </form>
           
-          <div className="demo-info">
-            <p>🚀 Demo: demo@example.com / password123</p>
-          </div>
+
           
           <div className="features-preview">
             <div className="feature">
@@ -205,9 +232,11 @@ function App() {
               className="logout-btn"
               onClick={() => { 
                 setUser(null); 
-                localStorage.removeItem('user'); 
-                localStorage.removeItem('transactions');
+                localStorage.clear(); // Complete cleanup
                 setTransactions([]);
+                setEmail('');
+                setPassword('');
+                setName('');
               }}
             >
               Logout
