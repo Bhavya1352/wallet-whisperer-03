@@ -52,6 +52,64 @@ app.get("/", (req, res) => {
 // Add OTP routes
 app.use('/api/auth', authRoutes);
 
+// Frontend API Routes
+app.post('/api/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    
+    // Find user in database
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ message: 'User not found' });
+    }
+    
+    // Check password (in production, use bcrypt)
+    if (user.password !== password) {
+      return res.status(400).json({ message: 'Invalid password' });
+    }
+    
+    res.json({
+      success: true,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email
+      },
+      token: 'jwt-token-' + user._id
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+app.post('/api/register', async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+    
+    // Check if user exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: 'User already exists' });
+    }
+    
+    // Create new user
+    const user = new User({ name, email, password });
+    await user.save();
+    
+    res.json({
+      success: true,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email
+      },
+      token: 'jwt-token-' + user._id
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // ADMIN ROUTES
 app.get("/api/admin/users", async (req, res) => {
   try {

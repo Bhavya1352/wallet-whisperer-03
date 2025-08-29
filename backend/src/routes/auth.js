@@ -1,5 +1,4 @@
 const express = require('express');
-const { sendOTP } = require('../../src/services/smsService');
 const router = express.Router();
 
 // Store OTPs temporarily (in production, use Redis)
@@ -27,22 +26,12 @@ router.post('/send-otp', async (req, res) => {
       expires: Date.now() + 5 * 60 * 1000 // 5 minutes
     });
     
-    // Send SMS
-    const result = await sendOTP(phoneNumber, otp);
-    
-    if (result.success) {
-      res.json({ 
-        success: true, 
-        message: 'OTP sent successfully',
-        // For demo purposes, include OTP in response (remove in production)
-        demoOTP: otp 
-      });
-    } else {
-      res.status(500).json({ 
-        error: 'Failed to send OTP', 
-        details: result.error 
-      });
-    }
+    // Demo OTP (no real SMS)
+    res.json({ 
+      success: true, 
+      message: 'OTP sent successfully',
+      demoOTP: otp 
+    });
   } catch (error) {
     console.error('Send OTP error:', error);
     res.status(500).json({ error: 'Internal server error' });

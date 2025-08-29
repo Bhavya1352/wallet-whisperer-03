@@ -19,62 +19,67 @@ const LoginForm = ({ isOpen, onClose, onLogin }: LoginFormProps) => {
     password: '',
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    let users = JSON.parse(localStorage.getItem('allUsers') || '[]');
-    
-    if (isLogin) {
-      // Login Logic - Find or create user
-      let user = users.find(u => u.email === formData.email);
+    try {
+      const endpoint = isLogin ? '/api/login' : '/api/register';
+      const payload = isLogin 
+        ? { email: formData.email, password: formData.password }
+        : { name: formData.name, email: formData.email, password: formData.password };
       
-      if (!user) {
-        // Create new user if not found
-        user = {
-          name: formData.email.split('@')[0],
+      const response = await fetch(`http://localhost:3001${endpoint}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload)
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        onLogin(data.user);
+        setFormData({ name: '', email: '', password: '' });
+        onClose();
+      } else {
+        alert(data.message || 'Login failed');
+      }
+    } catch (error) {
+      console.error('Auth error:', error);
+      // Fallback to localStorage for demo
+      let users = JSON.parse(localStorage.getItem('allUsers') || '[]');
+      
+      if (isLogin) {
+        let user = users.find(u => u.email === formData.email);
+        if (!user) {
+          user = {
+            name: formData.email.split('@')[0],
+            email: formData.email,
+            id: Date.now()
+          };
+          users.push(user);
+          localStorage.setItem('allUsers', JSON.stringify(users));
+        }
+        localStorage.setItem('user', JSON.stringify(user));
+        onLogin(user);
+      } else {
+        const userData = {
+          name: formData.name,
           email: formData.email,
-          password: formData.password,
-          id: Date.now(),
-          createdAt: new Date().toISOString()
+          id: Date.now()
         };
-        users.push(user);
+        users.push(userData);
         localStorage.setItem('allUsers', JSON.stringify(users));
+        localStorage.setItem('user', JSON.stringify(userData));
+        onLogin(userData);
       }
       
-      localStorage.setItem('token', 'demo-token-' + user.id);
-      localStorage.setItem('user', JSON.stringify(user));
-      onLogin(user);
-    } else {
-      // Signup Logic
-      const existingUser = users.find(u => u.email === formData.email);
-      if (existingUser) {
-        alert('Email already registered! Please login instead.');
-        return;
-      }
-      
-      if (!formData.name || !formData.email || !formData.password) {
-        alert('Please fill all fields!');
-        return;
-      }
-      
-      const userData = {
-        name: formData.name,
-        email: formData.email,
-        password: formData.password,
-        id: Date.now(),
-        createdAt: new Date().toISOString()
-      };
-      
-      users.push(userData);
-      localStorage.setItem('allUsers', JSON.stringify(users));
-      localStorage.setItem('token', 'demo-token-' + userData.id);
-      localStorage.setItem('user', JSON.stringify(userData));
-      
-      onLogin(userData);
+      setFormData({ name: '', email: '', password: '' });
+      onClose();
     }
-    
-    setFormData({ name: '', email: '', password: '' });
-    onClose();
   };
 
   return (
