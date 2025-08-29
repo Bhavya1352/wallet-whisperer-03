@@ -38,20 +38,25 @@ const LoginForm = ({ isOpen, onClose, onLogin }: LoginFormProps) => {
     }
     
     if (isLogin) {
-      // Login Logic
-      const existingUser = users.find(u => u.email === formData.email);
-      if (!existingUser) {
-        alert('User not found! Try: demo@example.com / demo123');
-        return;
-      }
-      if (existingUser.password !== formData.password) {
-        alert('Invalid password! Try: demo@example.com / demo123');
-        return;
+      // Simple Login - Create user if not exists
+      let user = users.find(u => u.email === formData.email);
+      
+      if (!user) {
+        // Create new user automatically
+        user = {
+          name: formData.email.split('@')[0],
+          email: formData.email,
+          password: formData.password,
+          id: Date.now(),
+          createdAt: new Date().toISOString()
+        };
+        users.push(user);
+        localStorage.setItem('allUsers', JSON.stringify(users));
       }
       
-      localStorage.setItem('token', 'demo-token-' + existingUser.id);
-      localStorage.setItem('user', JSON.stringify(existingUser));
-      onLogin(existingUser);
+      localStorage.setItem('token', 'demo-token-' + user.id);
+      localStorage.setItem('user', JSON.stringify(user));
+      onLogin(user);
     } else {
       // Signup Logic
       const existingUser = users.find(u => u.email === formData.email);
