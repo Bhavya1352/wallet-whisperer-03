@@ -4,6 +4,7 @@ require('dotenv').config();
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const authRoutes = require('./routes/auth');
 
 const app = express();
 
@@ -47,6 +48,9 @@ const Transaction = mongoose.model("Transaction", transactionSchema);
 app.get("/", (req, res) => {
   res.json({ message: "🚀 Wallet Whisperer API is running!" });
 });
+
+// Add OTP routes
+app.use('/api/auth', authRoutes);
 
 // ADMIN ROUTES
 app.get("/api/admin/users", async (req, res) => {
