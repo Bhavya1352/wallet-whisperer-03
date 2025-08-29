@@ -18,6 +18,8 @@ const DynamicSpendingChart = () => {
     });
     
     const data = Object.entries(expensesByCategory).map(([name, value]) => ({ name, value }));
+    
+    console.log('Chart data updated:', data);
     setChartData(data);
     setLoading(false);
   };
