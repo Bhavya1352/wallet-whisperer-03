@@ -90,17 +90,41 @@ const LoginForm = ({ isOpen, onClose, onLogin }: LoginFormProps) => {
       return;
     }
     
-    const users = JSON.parse(localStorage.getItem('allUsers') || '[]');
+    let users = JSON.parse(localStorage.getItem('allUsers') || '[]');
+    
+    // Create demo user if no users exist
+    if (users.length === 0) {
+      const demoUser = {
+        name: 'Demo User',
+        email: 'demo@example.com',
+        phone: '1234567890',
+        password: 'demo123',
+        id: 1,
+        createdAt: new Date().toISOString()
+      };
+      users.push(demoUser);
+      localStorage.setItem('allUsers', JSON.stringify(users));
+    }
     
     if (isLogin) {
-      // Login Logic
+      // Login Logic - Allow demo credentials
+      if (formData.email === 'demo@example.com' && formData.password === 'demo123') {
+        const demoUser = users.find(u => u.email === 'demo@example.com') || users[0];
+        localStorage.setItem('token', 'demo-token-' + demoUser.id);
+        localStorage.setItem('user', JSON.stringify(demoUser));
+        onLogin(demoUser);
+        resetForm();
+        onClose();
+        return;
+      }
+      
       const existingUser = users.find(u => u.email === formData.email);
       if (!existingUser) {
-        alert('User not found! Please sign up first.');
+        alert('User not found! Try: demo@example.com / demo123');
         return;
       }
       if (existingUser.password !== formData.password) {
-        alert('Invalid password!');
+        alert('Invalid password! Try: demo@example.com / demo123');
         return;
       }
       
@@ -156,6 +180,13 @@ const LoginForm = ({ isOpen, onClose, onLogin }: LoginFormProps) => {
             {showOtpLogin ? 'Enter your phone number to receive OTP' :
              (isLogin ? 'Login to access your dashboard' : 'Create your account to get started')}
           </p>
+          {isLogin && !showOtpLogin && (
+            <div className="bg-blue-50 p-3 rounded-lg mt-2">
+              <p className="text-xs text-blue-600 font-medium">Demo Credentials:</p>
+              <p className="text-xs text-blue-600">Email: demo@example.com</p>
+              <p className="text-xs text-blue-600">Password: demo123</p>
+            </div>
+          )}
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4 mt-6">
