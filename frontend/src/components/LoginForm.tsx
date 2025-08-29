@@ -28,7 +28,7 @@ const LoginForm = ({ isOpen, onClose, onLogin }: LoginFormProps) => {
     return Math.floor(100000 + Math.random() * 900000).toString();
   };
 
-  const sendOtp = () => {
+  const sendOtp = async () => {
     if (!formData.phone) {
       alert('Please enter phone number!');
       return;
@@ -39,12 +39,33 @@ const LoginForm = ({ isOpen, onClose, onLogin }: LoginFormProps) => {
       return;
     }
     
-    const otp = generateOtp();
-    setGeneratedOtp(otp);
-    setOtpSent(true);
-    
-    // Show OTP in alert for demo
-    alert(`📱 OTP sent to ${formData.phone}\n\n🔢 Your OTP: ${otp}\n\n(This is demo - in real app, OTP comes via SMS)`);
+    try {
+      // Call backend API to send real SMS
+      const response = await fetch('http://localhost:3001/api/auth/send-otp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ phoneNumber: formData.phone })
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setGeneratedOtp(data.demoOTP); // For demo purposes
+        setOtpSent(true);
+        alert(`📱 Real SMS sent to ${formData.phone}!\n\n🔢 Demo OTP: ${data.demoOTP}\n\n(Check your phone for actual SMS)`);
+      } else {
+        alert('Failed to send OTP: ' + data.error);
+      }
+    } catch (error) {
+      console.error('OTP sending error:', error);
+      // Fallback to demo mode
+      const otp = generateOtp();
+      setGeneratedOtp(otp);
+      setOtpSent(true);
+      alert(`📱 Demo mode - OTP: ${otp}\n\n(Backend not running - using demo mode)`);
+    }
   };
 
   const verifyOtp = () => {
@@ -97,8 +118,9 @@ const LoginForm = ({ isOpen, onClose, onLogin }: LoginFormProps) => {
     
     let users = JSON.parse(localStorage.getItem('allUsers') || '[]');
     
-    // Create demo user if no users exist
-    if (users.length === 0) {
+    // Always ensure demo user exists
+    const demoExists = users.find(u => u.email === 'demo@example.com');
+    if (!demoExists) {
       const demoUser = {
         name: 'Demo User',
         email: 'demo@example.com',
@@ -138,14 +160,19 @@ const LoginForm = ({ isOpen, onClose, onLogin }: LoginFormProps) => {
       onLogin(existingUser);
     } else {
       // Signup Logic
-      const existingUser = users.find(u => u.email === formData.email || u.phone === formData.phone);
+      const existingUser = users.find(u => u.email === formData.email);
       if (existingUser) {
-        alert('User already exists! Please login instead.');
+        alert('Email already registered! Please login instead.');
         return;
       }
       
-      if (!formData.name || !formData.email || !formData.phone || !formData.password) {
-        alert('Please fill all fields!');
+      if (!formData.name || !formData.email || !formData.password) {
+        alert('Please fill Name, Email and Password!');
+        return;
+      }
+      
+      if (formData.password.length < 6) {
+        alert('Password must be at least 6 characters!');
         return;
       }
       
@@ -260,14 +287,13 @@ const LoginForm = ({ isOpen, onClose, onLogin }: LoginFormProps) => {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="phone">Phone Number</Label>
+                    <Label htmlFor="phone">Phone Number (Optional)</Label>
                     <Input
                       id="phone"
                       type="tel"
-                      placeholder="Enter your phone number"
+                      placeholder="Enter your phone number (optional)"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      required={!isLogin}
                     />
                   </div>
                 </>
